@@ -118,7 +118,7 @@
         const taskLimit = 8;
         
         // Global variable to track current selected date
-        let currentDate = new Date(2025, 9, 24); // October 24, 2025
+        let currentDate = new Date(2025, 9, 1); // October 24, 2025
         const monthNames = [
             "October 2025", "November 2025", "December 2025", 
             "January 2026", "February 2026", "March 2026", 
@@ -137,7 +137,7 @@
             monthButtonsDiv.innerHTML = '';
             
             // Start from October 24, 2025
-            const startDate = new Date(2025, 9, 24);
+            const startDate = new Date(2025, 9, 1);
             
             for (let i = 0; i < 12; i++) {
                 const currentDateForButton = new Date(startDate);
@@ -158,7 +158,7 @@
                     this.classList.add('active');
                     
                     // Update current date
-                    const startDate = new Date(2025, 9, 24);
+                    const startDate = new Date(2025, 9, 1);
                     currentDate = new Date(startDate);
                     currentDate.setMonth(startDate.getMonth() + parseInt(this.dataset.monthIndex));
                     
@@ -251,7 +251,7 @@
         // Function to generate all 12 months PDFs
         async function generateAllMonths() {
             // Start date: October 24, 2025
-            const startDate = new Date(2025, 9, 24);
+            const startDate = new Date(2025, 9, 1);
             
             for (let i = 0; i < 12; i++) {
                 // Calculate date for this iteration
