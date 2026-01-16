@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.js"></script>
+    <style>
+        button {
+            width: 100%;
+            padding: 1rem;
+            border: 0;
+            font-size: 2rem;
+        }
+
+        .wrapper {
+            max-width: 50%;
+            margin: 2rem auto;
+        }
+        .pdf-btn{
+            margin-top: 2rem;
+        }
+        .pdf-wrapper {
+            margin-top: 2rem;
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio, change as needed */
+            height: 0;
+            overflow: hidden;
+        }
+
+        .pdf-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        
+        /* New styles for date selector */
+        .date-selector {
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        .month-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        
+        .month-btn {
+            padding: 0.5rem 1rem;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .month-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .month-btn.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .current-date-display {
+            margin-top: 1rem;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Version: v0.6 (With 12-month date selector)</p>
+    <div class="wrapper">
+        <div class="date-selector">
+            <h3>Select Month:</h3>
+            <div class="month-buttons" id="monthButtons">
+                <!-- Month buttons will be generated here -->
+            </div>
+            <div class="current-date-display" id="currentDateDisplay">
+                Current Date: October 24, 2025
+            </div>
+        </div>
+        
+        <form id="invoiceForm">
+            <label for="name">Company Name:</label><br>
+            <input type="text" id="company-name" name="name" placeholder="Company Name..." maxlength="48" required><br><br>
+          
+            <label for="task-number">How many task:</label><br>
+            <input type="number" id="task-number" name="task-number" placeholder="Task Number..." required><br><br>
+            
+            <div id="taskSections">
+                <!-- Task sections will be dynamically added here -->
+            </div>
+        </form>
+        <div class="pdf-btn">
+            <button onclick="modifyPdf()">Modify PDF</button>
+            <button onclick="generateAllMonths()" style="margin-top: 10px; background-color: #4CAF50; color: white;">
+                Generate All 12 Months
+            </button>
+        </div>
+        <div class="pdf-wrapper">
+            <iframe id="pdf" style="width: 100%; height: 100%;"></iframe>
+        </div>
+    </div>
+
+    <script>
+
+        const { degrees, PDFDocument, rgb, StandardFonts } = PDFLib;
+        const taskLimit = 8;
+        
+        // Global variable to track current selected date
+        let currentDate = new Date(2025, 9, 24); // October 24, 2025
+        const monthNames = [
+            "October 2025", "November 2025", "December 2025", 
+            "January 2026", "February 2026", "March 2026", 
+            "April 2026", "May 2026", "June 2026", 
+            "July 2026", "August 2026", "September 2026"
+        ];
+
+        // Initialize month buttons on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            generateMonthButtons();
+        });
+
+        // Function to generate month selection buttons
+        function generateMonthButtons() {
+            const monthButtonsDiv = document.getElementById('monthButtons');
+            monthButtonsDiv.innerHTML = '';
+            
+            // Start from October 24, 2025
+            const startDate = new Date(2025, 9, 24);
+            
+            for (let i = 0; i < 12; i++) {
+                const currentDateForButton = new Date(startDate);
+                currentDateForButton.setMonth(startDate.getMonth() + i);
+                
+                const button = document.createElement('button');
+                button.className = 'month-btn' + (i === 0 ? ' active' : '');
+                button.textContent = monthNames[i];
+                button.dataset.monthIndex = i;
+                
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.month-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Update current date
+                    const startDate = new Date(2025, 9, 24);
+                    currentDate = new Date(startDate);
+                    currentDate.setMonth(startDate.getMonth() + parseInt(this.dataset.monthIndex));
+                    
+                    // Update display
+                    updateDateDisplay();
+                });
+                
+                monthButtonsDiv.appendChild(button);
+            }
+        }
+
+        // Function to update date display
+        function updateDateDisplay() {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = currentDate.toLocaleDateString("en-US", options);
+            document.getElementById('currentDateDisplay').textContent = `Current Date: ${formattedDate}`;
+        }
+
+        document.getElementById("task-number").addEventListener("input", function() {
+            let taskNumber = parseInt(this.value);
+            let taskSectionsDiv = document.getElementById('taskSections');
+            taskSectionsDiv.innerHTML = ''; // Clear existing task sections
+
+            if(taskNumber <= taskLimit){
+                for (let i = 0; i < taskNumber; i++) {
+                let taskSection = document.createElement('div');
+                taskSection.className = 'task-section';
+                taskSection.innerHTML = `
+                    <hr>
+                    <h1>Task ${String.fromCharCode(65 + i)} </h1>
+                    <label for="task-name-${i}">Task Name:</label><br>
+                    <input type="text" id="task-name-${i}" name="task" maxlength="39"><br><br>
+
+                    <label for="qty-${i}">Qty:</label><br>
+                    <input type="number" id="qty-${i}" name="qty" ><br><br>
+
+                    <label for="price-${i}">Price per task:</label><br>
+                    <input type="number" id="price-${i}" name="price"><br><br>
+                    
+                `;
+                taskSectionsDiv.appendChild(taskSection);
+                }
+
+                document.querySelectorAll('.task-section').forEach(function(section) {
+                    section.style.display = 'block';
+                });
+          
+            } 
+            else
+            {
+                taskSectionsDiv.innerHTML = `<h1>Sorry, Its not possible to create more than ${taskLimit} tasks</h1>`;
+            }
+
+        });
+
+        function getFormData() {
+            let formData = [];
+            document.querySelectorAll('.task-section').forEach(function(section, index) {
+                let taskName = document.getElementById(`task-name-${index}`).value;
+                let qty = document.getElementById(`qty-${index}`).value;
+                let price = document.getElementById(`price-${index}`).value;
+                let total = qty*price;
+                formData.push({
+                    taskName: taskName,
+                    qty: qty,
+                    price: price,
+                    total: total
+                });
+            });
+
+            return formData;
+        }
+
+        document.getElementById("invoiceForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            let formData = getFormData();
+            console.log(formData);
+
+            // You can now process the formData as needed
+        });
+
+        // Function to generate a single PDF for the current selected date
+        async function modifyPdf() {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDate = currentDate.toLocaleDateString("en-US", options);
+            await generateSinglePdf(currentDate, formattedDate);
+        }
+
+        // Function to generate all 12 months PDFs
+        async function generateAllMonths() {
+            // Start date: October 24, 2025
+            const startDate = new Date(2025, 9, 24);
+            
+            for (let i = 0; i < 12; i++) {
+                // Calculate date for this iteration
+                const currentDateForLoop = new Date(startDate);
+                currentDateForLoop.setMonth(startDate.getMonth() + i);
+                
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                const formattedDate = currentDateForLoop.toLocaleDateString("en-US", options);
+                
+                // Generate PDF for this month
+                await generateSinglePdf(currentDateForLoop, formattedDate);
+                
+                // Create a slight delay to prevent overwhelming the browser
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Download the PDF with month name
+                const monthName = monthNames[i].replace(' ', '_');
+                await downloadCurrentPdf(monthName);
+            }
+            
+            alert('All 12 months PDFs have been generated! Check your downloads folder.');
+        }
+
+        // Core function to generate a single PDF with a specific date
+        async function generateSinglePdf(targetDate, formattedDate) {
+            let companyName = document.getElementById('company-name').value;
+            let taskNumber = document.getElementById('task-number').value;
+            let totalAmount = 0;
+            let formData = getFormData();
+            
+            const url = 'http://chrisycw.com/template.pdf';
+            
+            try {
+                const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer())
+                const pdfDoc = await PDFDocument.load(existingPdfBytes);
+                const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+                const pages = pdfDoc.getPages();
+                const firstPage = pages[0];
+                const { width, height } = firstPage.getSize();
+
+                const rowHeight = height/2 + 50;
+    
+                // Draw company name
+                firstPage.drawText(companyName, {
+                    x: 201,
+                    y: height/2 + 262,
+                    size: 13,
+                    font: helveticaFont,
+                    color: rgb(29/255, 29/255, 31/255),
+                });
+
+                // Draw tasks
+                for(i = 0; i < taskNumber; i++) {
+                    firstPage.drawText(formData[i].taskName, {
+                        x: 69,
+                        y: rowHeight - (i * 25),
+                        size: 13,
+                        font: helveticaFont,
+                        color: rgb(29/255, 29/255, 31/255),
+                    });
+
+                    firstPage.drawText(formData[i].qty, {
+                        x: 383,
+                        y: rowHeight - (i * 25),
+                        size: 13,
+                        font: helveticaFont,
+                        color: rgb(29/255, 29/255, 31/255),
+                    });
+
+                    firstPage.drawText("$" + Number(formData[i].price).toLocaleString('en-US'), {
+                        x: 467,
+                        y: rowHeight - (i * 25),
+                        size: 13,
+                        font: helveticaFont,
+                        color: rgb(29/255, 29/255, 31/255),
+                    });
+                    
+                    totalAmount += (formData[i].qty * formData[i].price);
+                }
+
+                // Draw total amount
+                firstPage.drawText("$" + Number(totalAmount).toLocaleString('en-US'), {
+                    x: 467,
+                    y: height/2 - 178,
+                    size: 13,
+                    font: helveticaFont,
+                    color: rgb(29/255, 29/255, 31/255),
+                });
+
+                // Draw date with the specified targetDate
+                const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+                const textWidth = helveticaFont.widthOfTextAtSize(formattedDate, 13);
+                
+                firstPage.drawText("Date: " + formattedDate, {
+                    x: (width - 50) - 50 - textWidth,
+                    y: height/2 - 300,
+                    size: 13,
+                    font: helveticaFont,
+                    color: rgb(29/255, 29/255, 31/255),
+                });
+    
+                const pdfBytes = await pdfDoc.save();
+                
+                // Store the PDF bytes globally for potential download
+                window.lastGeneratedPdfBytes = pdfBytes;
+                window.lastGeneratedPdfDate = formattedDate;
+
+                // Convert the PDF bytes to a Blob
+                const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+                // Create a URL for the Blob
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+
+                // Set the URL as the source for the iframe
+                document.getElementById('pdf').src = pdfUrl;
+
+            } catch (error) {
+                console.error('Error modifying PDF:', error);
+            }
+        }
+
+        // Function to download the currently generated PDF
+        async function downloadCurrentPdf(filenameSuffix = '') {
+            if (!window.lastGeneratedPdfBytes) {
+                console.error('No PDF generated yet');
+                return;
+            }
+            
+            const blob = new Blob([window.lastGeneratedPdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            // Create filename with date
+            const companyName = document.getElementById('company-name').value || 'invoice';
+            const safeCompanyName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const dateStr = window.lastGeneratedPdfDate ? 
+                window.lastGeneratedPdfDate.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 
+                'invoice';
+            
+            const filename = `${safeCompanyName}_${filenameSuffix || dateStr}.pdf`;
+            
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+    </script>
+</body>
+</html>
