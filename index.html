@@ -251,7 +251,7 @@
         // Function to generate all 12 months PDFs
         async function generateAllMonths() {
             // Start date: October 24, 2025
-            const startDate = new Date(2025, 9, 1);
+            const startDate = new Date().toLocaleDateString('en-US'); 
             
             for (let i = 0; i < 12; i++) {
                 // Calculate date for this iteration
