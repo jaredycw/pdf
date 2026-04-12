@@ -128,7 +128,7 @@
             <h3>Select Invoice Month:</h3>
             <div class="month-buttons" id="monthButtons"></div>
             <div class="current-date-display" id="currentDateDisplay">
-                Current Date: October 24, 2025
+                Current Date: October 12, 2025
             </div>
         </div>
 
@@ -159,7 +159,7 @@
         const TASK_LIMIT = 8;
 
         // Current selected date (starts from October 2025)
-        let currentDate = new Date(2025, 9, 24); // October 24, 2025
+        let currentDate = new Date(2025, 9, 12); // October 12, 2025
 
         const monthNames = [
             "October 2025", "November 2025", "December 2025",
@@ -188,7 +188,7 @@
                     document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
 
-                    currentDate = new Date(2025, 9 + i, 24); // 24th of each month
+                    currentDate = new Date(2025, 9 + i, 12); // 12th of each month
                     updateDateDisplay();
                 });
 
@@ -265,7 +265,7 @@
             const companyName = document.getElementById('company-name').value.trim() || "invoice";
 
             for (let i = 0; i < 12; i++) {
-                const loopDate = new Date(2025, 9 + i, 24);
+                const loopDate = new Date(2025, 9 + i, 12);
                 const formattedDate = loopDate.toLocaleDateString("en-US", { 
                     year: 'numeric', month: 'long', day: 'numeric' 
                 });
