@@ -316,4 +316,70 @@
                     firstPage.drawText(item.taskName, { x: 69, y: yPos, size: 13, font: helveticaFont, color: rgb(29/255, 29/255, 31/255) });
                     firstPage.drawText(item.qty.toString(), { x: 383, y: yPos, size: 13, font: helveticaFont, color: rgb(29/255, 29/255, 31/255) });
                     firstPage.drawText("$" + Number(item.price).toLocaleString('en-US'), { 
-                        x: 467, y: yPos, size: 13, font: helveticaFont, color: rgb(
+                        x: 467, y: yPos, size: 13, font: helveticaFont, color: rgb(29/255, 29/255, 31/255) 
+                    });
+                }
+
+                // Total
+                firstPage.drawText("$" + Number(totalAmount).toLocaleString('en-US'), {
+                    x: 467,
+                    y: height / 2 - 178,
+                    size: 13,
+                    font: helveticaFont,
+                    color: rgb(29/255, 29/255, 31/255),
+                });
+
+                // Date
+                const textWidth = helveticaFont.widthOfTextAtSize(formattedDate, 13);
+                firstPage.drawText("Date: " + formattedDate, {
+                    x: width - 100 - textWidth,
+                    y: height / 2 - 300,
+                    size: 13,
+                    font: helveticaFont,
+                    color: rgb(29/255, 29/255, 31/255),
+                });
+
+                const pdfBytes = await pdfDoc.save();
+
+                // Save for download
+                window.lastGeneratedPdfBytes = pdfBytes;
+                window.lastGeneratedPdfDate = formattedDate;
+
+                // Preview in iframe
+                const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+                document.getElementById('pdf').src = URL.createObjectURL(pdfBlob);
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Failed to generate PDF. Check console for details.');
+            }
+        }
+
+        // Download the last generated PDF
+        async function downloadCurrentPdf(filenameSuffix = '') {
+            if (!window.lastGeneratedPdfBytes) {
+                alert("Please generate a PDF first");
+                return;
+            }
+
+            const blob = new Blob([window.lastGeneratedPdfBytes], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            const companyName = document.getElementById('company-name').value.trim() || "invoice";
+            const safeName = companyName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const dateStr = window.lastGeneratedPdfDate ? 
+                window.lastGeneratedPdfDate.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'invoice';
+
+            const filename = `${safeName}${filenameSuffix ? '_' + filenameSuffix : ''}_${dateStr}.pdf`;
+
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
