@@ -121,7 +121,7 @@
 <body>
     <div class="wrapper">
         <h2>Invoice PDF Generator</h2>
-        <p style="color:#666;">Version: v0.9 (Improved Date Selector + Fixed Generate Logic)</p>
+        <p style="color:#666;">Version: v1.0 (Generate)</p>
 
         <!-- Date Selector -->
         <div class="date-selector">
@@ -315,13 +315,13 @@
 
                     firstPage.drawText(item.taskName, { x: 69, y: yPos, size: 13, font: helveticaFont, color: rgb(29/255, 29/255, 31/255) });
                     firstPage.drawText(item.qty.toString(), { x: 383, y: yPos, size: 13, font: helveticaFont, color: rgb(29/255, 29/255, 31/255) });
-                    firstPage.drawText("$" + Number(item.price).toLocaleString('en-US'), { 
+                    firstPage.drawText("" + Number(item.price).toLocaleString('en-US'), { 
                         x: 467, y: yPos, size: 13, font: helveticaFont, color: rgb(29/255, 29/255, 31/255) 
                     });
                 }
 
                 // Total
-                firstPage.drawText("$" + Number(totalAmount).toLocaleString('en-US'), {
+                firstPage.drawText("HK$" + Number(totalAmount).toLocaleString('en-US'), {
                     x: 467,
                     y: height / 2 - 178,
                     size: 13,
