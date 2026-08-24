@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
   <title>couple · shared calendar</title>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
   </script>
   <style>
@@ -670,7 +669,7 @@
     }
 
     /* ================================================
-       REMINDER POPOVER — 2026 BOTTOM SHEET STYLE (FIXED)
+       REMINDER POPOVER — SIMPLE RELIABLE APPROACH
     ================================================ */
     .reminder-overlay {
       position: fixed;
@@ -681,7 +680,7 @@
       -webkit-backdrop-filter: blur(2px);
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transition: opacity 0.3s ease, visibility 0.3s ease;
     }
     .reminder-overlay.active {
       opacity: 1;
@@ -707,10 +706,12 @@
       max-height: 60vh;
       overflow-y: auto;
       display: none;
+      pointer-events: none;
     }
     .reminder-popover.active {
       transform: translateY(0);
       display: block;
+      pointer-events: all;
     }
 
     .reminder-popover .popover-handle {
@@ -733,6 +734,19 @@
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--color-border-light);
+    }
+    .reminder-popover .popover-header .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      padding: 0.2rem 0.3rem;
+      border-radius: var(--radius-btn);
+      transition: background 0.15s ease;
+      user-select: none;
+    }
+    .reminder-popover .popover-header .header-left:hover {
+      background: var(--color-bg-subtle);
     }
     .reminder-popover .popover-header .lucide {
       width: var(--icon-size-small) !important;
@@ -838,8 +852,8 @@
         right: auto;
         bottom: auto;
         top: auto;
-        transform: none;
-        transition: opacity 0.2s ease, transform 0.2s ease;
+        transform: scale(0.96);
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
@@ -849,7 +863,7 @@
         opacity: 1;
         visibility: visible;
         pointer-events: all;
-        transform: translateY(0) scale(1);
+        transform: scale(1);
         display: block;
       }
       .reminder-popover .popover-handle {
@@ -1227,7 +1241,6 @@
 </head>
 <body>
   <div class="app" id="app">
-    <!-- header -->
     <div class="app-header">
       <h1>
         <i data-lucide="calendar-heart" class="lucide"></i>
@@ -1250,7 +1263,6 @@
       </span>
     </div>
 
-    <!-- tabs -->
     <div class="tabs">
       <button class="tab-btn active" data-panel="events">
         <i data-lucide="calendar-days" class="lucide"></i>
@@ -1262,7 +1274,6 @@
       </button>
     </div>
 
-    <!-- PANEL: EVENTS -->
     <div id="panel-events" class="panel active">
       <ul class="event-list" id="eventList"></ul>
 
@@ -1288,7 +1299,6 @@
       </div>
     </div>
 
-    <!-- PANEL: BUCKET -->
     <div id="panel-bucket" class="panel">
       <ul class="bucket-list" id="bucketList"></ul>
 
@@ -1320,19 +1330,20 @@
     </div>
   </div>
 
-  <!-- Reminder Popover (mobile bottom sheet) -->
+  <!-- ===== REMINDER POPOVER ===== -->
   <div class="reminder-overlay" id="reminderOverlay"></div>
   <div class="reminder-popover" id="reminderPopover">
     <div class="popover-handle"></div>
     <div class="popover-header">
-      <span><i data-lucide="bell" class="lucide"></i> Remind me</span>
-      <button class="close-btn" id="popoverCloseBtn" title="Cancel">
+      <span class="header-left" id="popoverHeaderClose">
+        <i data-lucide="bell" class="lucide"></i>
+        Remind me
+      </span>
+      <button class="close-btn" id="popoverCloseBtn" title="Close">
         <i data-lucide="x" class="lucide"></i>
       </button>
     </div>
-    <div class="popover-options" id="popoverOptions">
-      <!-- Options injected by JS -->
-    </div>
+    <div class="popover-options" id="popoverOptions"></div>
   </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
@@ -1491,12 +1502,15 @@
         lucide.createIcons();
       }
 
-      // ----- Popover logic (FIXED) -----
+      // =============================================
+      // REMINDER POPOVER — SIMPLE & RELIABLE
+      // =============================================
       let activeEventId = null;
       const popoverEl = document.getElementById('reminderPopover');
       const overlayEl = document.getElementById('reminderOverlay');
       const optionsContainer = document.getElementById('popoverOptions');
       const closeBtn = document.getElementById('popoverCloseBtn');
+      const headerClose = document.getElementById('popoverHeaderClose');
 
       const reminderOptions = [
         { value: null, label: 'Off', icon: 'bell-off' },
@@ -1507,19 +1521,14 @@
         { value: '1w', label: '1 week', icon: 'calendar' }
       ];
 
+      // --- CLOSE ---
       function closePopover() {
         popoverEl.classList.remove('active');
         overlayEl.classList.remove('active');
         activeEventId = null;
-        document.removeEventListener('click', outsideClickHandler);
       }
 
-      function outsideClickHandler(e) {
-        if (popoverEl && !popoverEl.contains(e.target) && !e.target.closest('.reminder-btn')) {
-          closePopover();
-        }
-      }
-
+      // --- OPEN ---
       function openPopover(eventId, buttonElement) {
         // Close any open popover first
         closePopover();
@@ -1533,11 +1542,8 @@
         let optionsHtml = '';
         reminderOptions.forEach(function(opt) {
           const isActive = (ev.reminder === opt.value);
-          // Show check-circle if active and not "Off", otherwise show the option icon
           let iconName = opt.icon;
-          if (isActive && opt.value !== null) {
-            iconName = 'check-circle';
-          } else if (isActive && opt.value === null) {
+          if (isActive) {
             iconName = 'check-circle';
           }
           optionsHtml +=
@@ -1549,20 +1555,12 @@
           optionsHtml += '</button>';
         });
         optionsContainer.innerHTML = optionsHtml;
-
-        // Re-create icons
         lucide.createIcons();
 
-        // --- Event delegation for options (FIXED: using direct click on container) ---
-        // Remove old listener to avoid duplicates
-        optionsContainer.removeEventListener('click', handleOptionClick);
-        optionsContainer.addEventListener('click', handleOptionClick);
-
-        // --- Positioning ---
+        // --- Position ---
         const isDesktop = window.innerWidth >= 641;
 
         if (isDesktop) {
-          // Desktop: floating popover
           const rect = buttonElement.getBoundingClientRect();
           const popoverWidth = 190;
           let left = rect.left + rect.width / 2 - popoverWidth / 2;
@@ -1578,46 +1576,29 @@
           popoverEl.style.top = top + 'px';
           popoverEl.style.right = 'auto';
           popoverEl.style.bottom = 'auto';
-          popoverEl.style.transform = 'scale(0.96)';
-          popoverEl.style.opacity = '0';
-          popoverEl.style.visibility = 'hidden';
-          popoverEl.style.pointerEvents = 'none';
-          popoverEl.style.display = 'block';
 
+          // Show with animation
+          popoverEl.style.display = 'block';
           requestAnimationFrame(function() {
-            popoverEl.style.opacity = '1';
-            popoverEl.style.transform = 'scale(1)';
-            popoverEl.style.visibility = 'visible';
-            popoverEl.style.pointerEvents = 'all';
             popoverEl.classList.add('active');
           });
-
-          // Outside click for desktop
-          setTimeout(function() {
-            document.addEventListener('click', outsideClickHandler);
-          }, 50);
         } else {
           // Mobile: bottom sheet
           popoverEl.style.left = '0';
           popoverEl.style.right = '0';
           popoverEl.style.top = 'auto';
           popoverEl.style.bottom = '0';
-          popoverEl.style.transform = 'translateY(100%)';
-          popoverEl.style.opacity = '1';
-          popoverEl.style.visibility = 'visible';
-          popoverEl.style.pointerEvents = 'all';
           popoverEl.style.display = 'block';
 
           overlayEl.classList.add('active');
 
           requestAnimationFrame(function() {
             popoverEl.classList.add('active');
-            popoverEl.style.transform = 'translateY(0)';
           });
         }
       }
 
-      // ----- Handle option click (FIXED: delegated) -----
+      // --- Handle option click ---
       function handleOptionClick(e) {
         const btn = e.target.closest('.popover-option');
         if (!btn) return;
@@ -1626,18 +1607,33 @@
         const parsedValue = value === 'null' ? null : value;
 
         if (activeEventId) {
-          setReminder(activeEventId, parsedValue);
+          const ev = events.find(function(item) { return item.id === activeEventId; });
+          if (ev) {
+            ev.reminder = parsedValue;
+            renderEvents();
+          }
           closePopover();
         }
       }
 
-      // ----- set reminder -----
-      function setReminder(eventId, value) {
-        const ev = events.find(function(item) { return item.id === eventId; });
-        if (ev) {
-          ev.reminder = value;
-          renderEvents();
+      // --- Click outside handler ---
+      function handleOutsideClick(e) {
+        if (!popoverEl.classList.contains('active')) return;
+
+        // If click is inside the popover, ignore
+        if (popoverEl.contains(e.target)) return;
+
+        // If click is on a reminder button, ignore (let the button handle it)
+        if (e.target.closest('.reminder-btn')) return;
+
+        // If click is on the overlay (mobile), close
+        if (e.target === overlayEl) {
+          closePopover();
+          return;
         }
+
+        // Otherwise, close
+        closePopover();
       }
 
       // ----- add functions -----
@@ -1696,7 +1692,7 @@
           });
         });
 
-        // Event list delegation
+        // --- Event list ---
         document.getElementById('eventList').addEventListener('click', function(e) {
           const btn = e.target.closest('button[data-action]');
           if (!btn) return;
@@ -1711,15 +1707,19 @@
             renderEvents();
           } else if (action === 'remind') {
             if (ev) {
-              closePopover();
-              openPopover(id, btn);
+              // Toggle: if already open for this event, close it
+              if (popoverEl.classList.contains('active') && activeEventId === id) {
+                closePopover();
+              } else {
+                openPopover(id, btn);
+              }
             }
           } else if (action === 'calendar') {
             if (ev) { addToCalendar(ev); }
           }
         });
 
-        // Bucket list delegation
+        // --- Bucket list ---
         document.getElementById('bucketList').addEventListener('click', function(e) {
           const btn = e.target.closest('button[data-action]');
           if (!btn) return;
@@ -1741,31 +1741,50 @@
           }
         });
 
-        // --- Close popover: overlay click ---
+        // --- Option clicks (delegated) ---
+        optionsContainer.addEventListener('click', handleOptionClick);
+
+        // --- Close: overlay ---
         overlayEl.addEventListener('click', function(e) {
           if (e.target === overlayEl) {
             closePopover();
           }
         });
 
-        // --- Close popover: close button ---
+        // --- Close: ✕ button ---
         closeBtn.addEventListener('click', function(e) {
           e.stopPropagation();
           closePopover();
         });
 
-        // --- Close popover: Escape key ---
+        // --- Close: header click ---
+        headerClose.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closePopover();
+        });
+
+        // --- Close: Escape key ---
         document.addEventListener('keydown', function(e) {
           if (e.key === 'Escape') {
             closePopover();
           }
         });
 
-        // --- Handle resize: close popover on orientation change ---
+        // --- Click outside (global) ---
+        document.addEventListener('click', handleOutsideClick);
+
+        // --- Close on resize ---
         window.addEventListener('resize', function() {
           if (popoverEl.classList.contains('active')) {
             closePopover();
           }
+        });
+
+        // --- Close on tab switch ---
+        document.querySelectorAll('.tab-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            closePopover();
+          });
         });
       }
 
@@ -1782,7 +1801,6 @@
               panels[key].classList.toggle('active', key === panelName);
             });
             lucide.createIcons();
-            closePopover();
           });
         });
       }
