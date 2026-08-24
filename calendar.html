@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+  <title>couple · shared calendar</title>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+  </script>
+  <style>
+    /* ---------- design tokens · 2026 ---------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --text-ultra-large: clamp(2rem, 5vw, 2.8rem);
+      --text-extra-large: clamp(1.6rem, 4vw, 2.2rem);
+      --text-large: clamp(1.3rem, 3vw, 1.6rem);
+      --text-medium-large: clamp(1.1rem, 2.5vw, 1.35rem);
+      --text-medium: clamp(0.95rem, 2vw, 1.05rem);
+      --text-medium-small: clamp(0.85rem, 1.8vw, 0.95rem);
+      --text-small: clamp(0.75rem, 1.5vw, 0.85rem);
+      --text-tiny: clamp(0.65rem, 1.2vw, 0.75rem);
+      --text-extra-small: clamp(0.55rem, 1vw, 0.65rem);
+
+      --color-bg-body: #e8e6e0;
+      --color-bg-app: rgba(255, 252, 248, 0.72);
+      --color-bg-card: rgba(255, 255, 255, 0.85);
+      --color-bg-card-hover: rgba(255, 255, 255, 0.98);
+      --color-bg-subtle: rgba(245, 242, 237, 0.6);
+      --color-bg-tag: rgba(220, 215, 205, 0.4);
+      --color-bg-reminder: #fef3e2;
+      --color-bg-input: rgba(255, 255, 255, 0.9);
+      --color-border-light: rgba(160, 150, 140, 0.15);
+      --color-border-card: rgba(160, 150, 140, 0.08);
+      --color-border-card-hover: rgba(160, 150, 140, 0.2);
+      --color-border-input: rgba(160, 150, 140, 0.12);
+      --color-border-input-focus: #8b7e72;
+      --color-text-primary: #1e1a16;
+      --color-text-secondary: #4a433c;
+      --color-text-muted: #8a8078;
+      --color-text-soft: #b0a89e;
+      --color-text-extra-muted: #d0c8be;
+      --color-accent-dark: #2a2420;
+      --color-accent-dark-hover: #4a4038;
+      --color-accent-white: #fcf9f5;
+      --color-danger-bg: #fdf0ed;
+      --color-danger-text: #d95c4a;
+      --color-done: #5a8f6c;
+      --color-shadow: rgba(60, 50, 40, 0.06);
+      --color-calendar: #7a8fa6;
+      --color-owner-a: #7a8fa6;
+      --color-owner-b: #d4a0a0;
+      --color-owner-both: #b0a89e;
+
+      --radius-app: 2.8rem;
+      --radius-card: 1.6rem;
+      --radius-form: 1.8rem;
+      --radius-input: 1.2rem;
+      --radius-btn: 1.2rem;
+      --radius-tag: 2.4rem;
+      --radius-badge: 2.4rem;
+
+      --spacing-app: clamp(1.5rem, 4vw, 2.8rem) clamp(1.2rem, 3vw, 2.5rem);
+      --spacing-card: clamp(0.7rem, 1.5vw, 1rem) clamp(0.9rem, 2vw, 1.4rem);
+      --spacing-form: clamp(0.8rem, 1.8vw, 1.2rem) clamp(1rem, 2vw, 1.6rem);
+      --spacing-gap: clamp(0.5rem, 1.2vw, 0.8rem);
+      --spacing-section: clamp(1.2rem, 2.5vw, 2rem);
+
+      --icon-size: clamp(1.1rem, 2vw, 1.3rem);
+      --icon-size-small: clamp(0.9rem, 1.5vw, 1.05rem);
+      --icon-size-tiny: clamp(0.7rem, 1vw, 0.8rem);
+      --touch-min: 48px;
+      --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", sans-serif;
+    }
+
+    body {
+      background: var(--color-bg-body);
+      font-family: var(--font-stack);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: clamp(0.8rem, 2vw, 1.5rem);
+      color: var(--color-text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-image: radial-gradient(ellipse at 20% 50%, rgba(200, 190, 180, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(180, 170, 160, 0.1) 0%, transparent 50%);
+    }
+
+    .app {
+      max-width: 720px;
+      width: 100%;
+      background: var(--color-bg-app);
+      backdrop-filter: saturate(180%) blur(32px) brightness(1.02);
+      -webkit-backdrop-filter: saturate(180%) blur(32px) brightness(1.02);
+      border-radius: var(--radius-app);
+      padding: var(--spacing-app);
+      box-shadow: 0 24px 80px rgba(40, 35, 30, 0.07), 0 8px 24px rgba(40, 35, 30, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .lucide {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+      stroke-width: 1.8;
+      flex-shrink: 0;
+    }
+    .lucide.lucide-calendar,
+    .lucide.lucide-clock {
+      width: var(--icon-size-tiny) !important;
+      height: var(--icon-size-tiny) !important;
+    }
+    .lucide.lucide-bell,
+    .lucide.lucide-bell-off,
+    .lucide.lucide-x,
+    .lucide.lucide-check,
+    .lucide.lucide-list-check,
+    .lucide.lucide-list-todo,
+    .lucide.lucide-calendar-plus {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    h1 {
+      font-size: var(--text-ultra-large);
+      font-weight: 620;
+      letter-spacing: -0.035em;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--color-text-primary);
+    }
+    h1 .lucide {
+      width: clamp(2rem, 4.5vw, 2.6rem) !important;
+      height: clamp(2rem, 4.5vw, 2.6rem) !important;
+      stroke-width: 1.6;
+      color: var(--color-owner-b);
+      filter: drop-shadow(0 2px 8px rgba(212, 160, 160, 0.25));
+    }
+    h1 small {
+      font-size: var(--text-medium);
+      font-weight: 400;
+      color: var(--color-text-muted);
+      margin-left: 0.1rem;
+    }
+
+    .header-badge {
+      background: var(--color-bg-tag);
+      padding: 0.3rem 1rem;
+      border-radius: var(--radius-tag);
+      font-size: var(--text-tiny);
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-weight: 450;
+      letter-spacing: 0.02em;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .header-badge .lucide {
+      width: var(--icon-size-tiny) !important;
+      height: var(--icon-size-tiny) !important;
+    }
+
+    .subhead {
+      font-size: var(--text-medium-small);
+      color: var(--color-text-secondary);
+      border-bottom: 1px solid var(--color-border-light);
+      padding-bottom: 0.8rem;
+      margin-bottom: var(--spacing-section);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .subhead span {
+      background: var(--color-bg-tag);
+      padding: 0.2rem 0.9rem;
+      border-radius: var(--radius-tag);
+      font-size: var(--text-small);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--color-text-secondary);
+      font-weight: 450;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .subhead span .lucide {
+      width: var(--icon-size-small) !important;
+      height: var(--icon-size-small) !important;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: var(--spacing-section);
+      padding: 0.3rem;
+      background: rgba(240, 236, 230, 0.3);
+      border-radius: var(--radius-form);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 0.5rem 1.4rem;
+      font-size: var(--text-medium-small);
+      font-weight: 470;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      border-radius: var(--radius-btn);
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-stack);
+      min-height: var(--touch-min);
+      flex: 1;
+      justify-content: center;
+      letter-spacing: 0.01em;
+    }
+    .tab-btn .lucide {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+      transition: transform 0.3s ease;
+    }
+    .tab-btn.active {
+      background: var(--color-accent-dark);
+      color: var(--color-accent-white);
+      font-weight: 520;
+      box-shadow: 0 4px 16px rgba(30, 26, 22, 0.12), 0 2px 8px rgba(30, 26, 22, 0.06);
+    }
+    .tab-btn.active .lucide {
+      transform: scale(1.05);
+    }
+    .tab-btn:hover:not(.active) {
+      background: rgba(60, 50, 40, 0.05);
+      color: var(--color-text-primary);
+      transform: translateY(-1px);
+    }
+    .tab-btn:active {
+      transform: scale(0.96);
+    }
+
+    .panel {
+      display: none;
+      animation: panelFade 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .panel.active {
+      display: block;
+    }
+    @keyframes panelFade {
+      0% {
+        opacity: 0.3;
+        transform: translateY(8px) scale(0.98);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .event-list,
+    .bucket-list {
+      list-style: none;
+      margin: 0 0 1.4rem 0;
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-gap);
+    }
+
+    .event-item,
+    .bucket-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--color-bg-card);
+      padding: var(--spacing-card);
+      border-radius: var(--radius-card);
+      border: 1px solid var(--color-border-card);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 12px rgba(40, 35, 30, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .event-item::before,
+    .bucket-item::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-card);
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .event-item:hover,
+    .bucket-item:hover {
+      background: var(--color-bg-card-hover);
+      border-color: var(--color-border-card-hover);
+      box-shadow: 0 8px 32px rgba(40, 35, 30, 0.06), 0 2px 8px rgba(40, 35, 30, 0.03);
+      transform: translateY(-2px);
+    }
+    .event-item:active,
+    .bucket-item:active {
+      transform: scale(0.98);
+      transition-duration: 0.08s;
+    }
+
+    .event-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .event-title {
+      font-weight: 510;
+      font-size: var(--text-medium);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      color: var(--color-text-primary);
+      word-break: break-word;
+      line-height: 1.3;
+    }
+    .event-title .lucide {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+    .event-meta {
+      font-size: var(--text-tiny);
+      color: var(--color-text-muted);
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .event-meta span {
+      background: var(--color-bg-tag);
+      padding: 0.08rem 0.5rem;
+      border-radius: var(--radius-badge);
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-weight: 450;
+      font-size: var(--text-extra-small);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      white-space: nowrap;
+    }
+    .event-meta span .lucide {
+      width: 0.65rem !important;
+      height: 0.65rem !important;
+      opacity: 0.6;
+    }
+    .event-actions,
+    .bucket-actions {
+      display: flex;
+      gap: 0.1rem;
+      flex-shrink: 0;
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      padding: 0.2rem 0.35rem;
+      border-radius: var(--radius-btn);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: var(--touch-min);
+      min-width: var(--touch-min);
+      position: relative;
+    }
+    .btn-icon .lucide {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+      stroke-width: 1.8;
+      transition: transform 0.2s ease;
+    }
+    .btn-icon:hover {
+      background: rgba(60, 50, 40, 0.06);
+      color: var(--color-text-primary);
+    }
+    .btn-icon:hover .lucide {
+      transform: scale(1.1);
+    }
+    .btn-icon:active {
+      transform: scale(0.88);
+    }
+    .btn-icon.danger:hover {
+      background: var(--color-danger-bg);
+      color: var(--color-danger-text);
+    }
+    .btn-icon.calendar-btn:hover {
+      background: rgba(122, 143, 166, 0.12);
+      color: var(--color-calendar);
+    }
+
+    .reminder-label {
+      font-size: var(--text-extra-small);
+      font-weight: 500;
+      margin-left: 0.1rem;
+      color: var(--color-text-muted);
+      background: var(--color-bg-tag);
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--radius-badge);
+      line-height: 1.2;
+    }
+    .btn-icon:hover .reminder-label {
+      color: var(--color-text-primary);
+    }
+
+    .owner-badge {
+      font-size: var(--text-extra-small);
+      font-weight: 600;
+      padding: 0.05rem 0.6rem;
+      border-radius: var(--radius-badge);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--color-bg-tag);
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+      min-height: 20px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      transition: all 0.2s ease;
+      line-height: 1;
+    }
+    .owner-badge.owner-a {
+      background: rgba(122, 143, 166, 0.15);
+      color: var(--color-owner-a);
+      border-color: rgba(122, 143, 166, 0.15);
+    }
+    .owner-badge.owner-b {
+      background: rgba(212, 160, 160, 0.18);
+      color: var(--color-owner-b);
+      border-color: rgba(212, 160, 160, 0.15);
+    }
+    .owner-badge.owner-both {
+      background: rgba(176, 168, 158, 0.15);
+      color: var(--color-owner-both);
+      border-color: rgba(176, 168, 158, 0.12);
+    }
+
+    .add-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-gap);
+      margin-top: 0.3rem;
+      background: var(--color-bg-subtle);
+      padding: var(--spacing-form);
+      border-radius: var(--radius-form);
+      align-items: center;
+      border: 1px solid var(--color-border-light);
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      transition: all 0.3s ease;
+    }
+    .add-form:focus-within {
+      border-color: var(--color-border-input-focus);
+      box-shadow: 0 0 0 4px rgba(139, 126, 114, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+    .add-form input,
+    .add-form select {
+      background: var(--color-bg-input);
+      border: 1px solid var(--color-border-input);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-input);
+      font-size: var(--text-medium-small);
+      flex: 1 1 120px;
+      outline: none;
+      transition: all 0.25s ease;
+      font-family: var(--font-stack);
+      color: var(--color-text-primary);
+      appearance: auto;
+      min-height: var(--touch-min);
+      backdrop-filter: blur(4px);
+    }
+    .add-form input::placeholder {
+      color: var(--color-text-soft);
+      font-weight: 400;
+    }
+    .add-form input:focus,
+    .add-form select:focus {
+      border-color: var(--color-border-input-focus);
+      background: var(--color-bg-input);
+      box-shadow: 0 0 0 4px rgba(139, 126, 114, 0.08);
+    }
+    .add-form select {
+      flex: 0 1 130px;
+      cursor: pointer;
+      min-height: var(--touch-min);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8078' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 2.8rem;
+    }
+    .add-form button {
+      background: var(--color-accent-dark);
+      border: none;
+      color: var(--color-accent-white);
+      padding: 0.6rem 1.6rem;
+      border-radius: var(--radius-btn);
+      font-size: var(--text-medium-small);
+      font-weight: 520;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-family: var(--font-stack);
+      min-height: var(--touch-min);
+      min-width: var(--touch-min);
+      box-shadow: 0 4px 16px rgba(30, 26, 22, 0.08);
+      letter-spacing: 0.01em;
+    }
+    .add-form button .lucide {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+      stroke-width: 2.2;
+    }
+    .add-form button:hover {
+      background: var(--color-accent-dark-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(30, 26, 22, 0.12);
+    }
+    .add-form button:active {
+      transform: scale(0.96);
+      transition-duration: 0.08s;
+    }
+
+    .form-hint {
+      font-size: var(--text-extra-small);
+      color: var(--color-text-soft);
+      margin-top: 0.5rem;
+      padding-left: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      opacity: 0.8;
+    }
+    .form-hint .lucide {
+      width: 0.7rem !important;
+      height: 0.7rem !important;
+    }
+
+    .reminder-badge {
+      font-size: var(--text-extra-small);
+      background: var(--color-bg-reminder);
+      padding: 0.05rem 0.6rem;
+      border-radius: var(--radius-badge);
+      color: #a67c5a;
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-weight: 500;
+      border: 1px solid rgba(166, 124, 90, 0.1);
+      white-space: nowrap;
+    }
+    .reminder-badge .lucide {
+      width: 0.65rem !important;
+      height: 0.65rem !important;
+      fill: #a67c5a;
+      stroke: #a67c5a;
+    }
+
+    .empty-state {
+      font-size: var(--text-medium);
+      color: var(--color-text-soft);
+      padding: 2rem 1rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: var(--color-bg-subtle);
+      border-radius: var(--radius-card);
+      border: 1.5px dashed var(--color-border-card-hover);
+      backdrop-filter: blur(4px);
+    }
+    .empty-state .lucide {
+      width: 2.4rem !important;
+      height: 2.4rem !important;
+      opacity: 0.3;
+    }
+    .empty-state .empty-label {
+      font-weight: 400;
+      letter-spacing: 0.02em;
+    }
+
+    .bucket-item .event-title .lucide {
+      color: var(--color-text-soft);
+      transition: all 0.3s ease;
+    }
+    .bucket-item.done {
+      opacity: 0.75;
+      text-decoration: line-through 1.5px var(--color-text-soft);
+    }
+    .bucket-item.done .event-title .lucide {
+      color: var(--color-done);
+      opacity: 1;
+    }
+    .bucket-item.done .event-title {
+      color: var(--color-text-muted);
+    }
+    .bucket-item.done .owner-badge {
+      opacity: 0.5;
+    }
+
+    .app-divider {
+      border: none;
+      border-top: 1px solid var(--color-border-light);
+      margin: var(--spacing-section) 0 0.8rem;
+    }
+
+    .footer-note {
+      font-size: var(--text-extra-small);
+      color: var(--color-text-extra-muted);
+      text-align: center;
+      margin-top: 0.4rem;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      font-weight: 400;
+      opacity: 0.6;
+    }
+    .footer-note .lucide {
+      width: 0.7rem !important;
+      height: 0.7rem !important;
+    }
+
+    /* ================================================
+       REMINDER POPOVER — 2026 BOTTOM SHEET STYLE (FIXED)
+    ================================================ */
+    .reminder-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .reminder-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .reminder-popover {
+      position: fixed;
+      z-index: 1000;
+      background: var(--color-bg-app);
+      backdrop-filter: saturate(180%) blur(40px) brightness(1.02);
+      -webkit-backdrop-filter: saturate(180%) blur(40px) brightness(1.02);
+      border-radius: var(--radius-app) var(--radius-app) 0 0;
+      box-shadow: 0 -8px 48px rgba(30, 26, 22, 0.12), 0 -4px 16px rgba(30, 26, 22, 0.04);
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 0.8rem 0 0.8rem 0;
+      min-width: 200px;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      max-height: 60vh;
+      overflow-y: auto;
+      display: none;
+    }
+    .reminder-popover.active {
+      transform: translateY(0);
+      display: block;
+    }
+
+    .reminder-popover .popover-handle {
+      width: 36px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--color-text-soft);
+      margin: 0 auto 0.6rem auto;
+      opacity: 0.3;
+      flex-shrink: 0;
+    }
+
+    .reminder-popover .popover-header {
+      padding: 0 1.2rem 0.5rem 1.2rem;
+      font-size: var(--text-small);
+      font-weight: 500;
+      color: var(--color-text-muted);
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .reminder-popover .popover-header .lucide {
+      width: var(--icon-size-small) !important;
+      height: var(--icon-size-small) !important;
+    }
+    .reminder-popover .popover-header .close-btn {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 0.3rem;
+      border-radius: var(--radius-btn);
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      min-width: 36px;
+    }
+    .reminder-popover .popover-header .close-btn:hover {
+      background: var(--color-bg-subtle);
+    }
+    .reminder-popover .popover-header .close-btn .lucide {
+      width: var(--icon-size-small) !important;
+      height: var(--icon-size-small) !important;
+    }
+
+    .reminder-popover .popover-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      padding: 0.4rem 0.6rem;
+    }
+
+    .reminder-popover .popover-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-size: var(--text-medium-small);
+      font-family: var(--font-stack);
+      color: var(--color-text-primary);
+      cursor: pointer;
+      transition: background 0.15s ease;
+      gap: 0.6rem;
+      min-height: 48px;
+      text-align: left;
+    }
+    .reminder-popover .popover-option:hover {
+      background: var(--color-bg-subtle);
+    }
+    .reminder-popover .popover-option:active {
+      transform: scale(0.97);
+      transition-duration: 0.05s;
+    }
+    .reminder-popover .popover-option .option-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .reminder-popover .popover-option .option-label .lucide {
+      width: var(--icon-size-small) !important;
+      height: var(--icon-size-small) !important;
+      opacity: 0.5;
+    }
+    .reminder-popover .popover-option.active {
+      background: var(--color-bg-tag);
+      font-weight: 500;
+    }
+    .reminder-popover .popover-option.active .option-label .lucide {
+      opacity: 1;
+      color: var(--color-owner-a);
+    }
+    .reminder-popover .popover-option .check {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      color: var(--color-owner-a);
+    }
+    .reminder-popover .popover-option.active .check {
+      opacity: 1;
+    }
+    .reminder-popover .popover-option .check .lucide {
+      width: var(--icon-size-small) !important;
+      height: var(--icon-size-small) !important;
+    }
+
+    /* Desktop: floating popover */
+    @media (min-width: 641px) {
+      .reminder-popover {
+        position: fixed;
+        border-radius: var(--radius-card);
+        box-shadow: 0 16px 48px rgba(30, 26, 22, 0.12), 0 4px 12px rgba(30, 26, 22, 0.04);
+        border: 1px solid var(--color-border-light);
+        padding: 0.4rem 0;
+        min-width: 150px;
+        max-width: 220px;
+        max-height: 80vh;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        top: auto;
+        transform: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        display: block;
+      }
+      .reminder-popover.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: all;
+        transform: translateY(0) scale(1);
+        display: block;
+      }
+      .reminder-popover .popover-handle {
+        display: none;
+      }
+      .reminder-popover .popover-header {
+        padding: 0.2rem 0.8rem 0.3rem 0.8rem;
+        font-size: var(--text-extra-small);
+        border-bottom: 1px solid var(--color-border-light);
+      }
+      .reminder-popover .popover-header .close-btn {
+        min-height: 28px;
+        min-width: 28px;
+        padding: 0.1rem;
+      }
+      .reminder-popover .popover-options {
+        padding: 0.2rem 0.3rem;
+      }
+      .reminder-popover .popover-option {
+        padding: 0.3rem 0.6rem;
+        min-height: 34px;
+        font-size: var(--text-small);
+        border-radius: var(--radius-btn);
+      }
+      .reminder-overlay {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      :root {
+        --spacing-app: 1rem 1rem;
+        --spacing-card: 0.6rem 0.8rem;
+        --spacing-form: 0.7rem 0.8rem;
+        --radius-app: 1.8rem;
+        --icon-size: 1.05rem;
+        --touch-min: 44px;
+      }
+
+      .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+      }
+      .header-badge {
+        font-size: var(--text-extra-small);
+        padding: 0.15rem 0.7rem;
+      }
+
+      .tabs {
+        gap: 0.3rem;
+        padding: 0.2rem;
+        border-radius: var(--radius-form);
+      }
+      .tab-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: var(--text-small);
+        flex: 1;
+        justify-content: center;
+        min-height: 40px;
+      }
+      .tab-btn span {
+        display: none;
+      }
+      .tab-btn .lucide {
+        width: var(--icon-size) !important;
+        height: var(--icon-size) !important;
+      }
+
+      .add-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        border-radius: var(--radius-form);
+        padding: var(--spacing-form);
+      }
+      .add-form input,
+      .add-form select,
+      .add-form button {
+        flex: 1 1 auto;
+        width: 100%;
+        min-height: var(--touch-min);
+      }
+      .add-form select {
+        flex: 1 1 auto;
+        background-position: right 0.8rem center;
+        padding-right: 2.4rem;
+      }
+      .add-form button {
+        justify-content: center;
+        padding: 0.7rem;
+      }
+
+      .event-item,
+      .bucket-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.4rem 0.6rem;
+        padding: var(--spacing-card);
+        align-items: center;
+        border-radius: var(--radius-card);
+        flex-wrap: nowrap;
+      }
+
+      .event-item .event-info,
+      .bucket-item .event-info {
+        grid-column: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+        flex: none;
+        width: 100%;
+      }
+
+      .event-item .event-actions,
+      .bucket-item .bucket-actions {
+        grid-column: 2;
+        display: flex;
+        flex-direction: row;
+        gap: 0.05rem;
+        align-items: center;
+        justify-content: flex-end;
+        margin-left: 0;
+        flex-shrink: 0;
+        flex-wrap: nowrap;
+      }
+
+      .event-item .event-actions .btn-icon,
+      .bucket-item .bucket-actions .btn-icon {
+        min-height: 38px;
+        min-width: 38px;
+        padding: 0.1rem 0.15rem;
+      }
+      .event-item .event-actions .btn-icon .lucide,
+      .bucket-item .bucket-actions .btn-icon .lucide {
+        width: calc(var(--icon-size) * 0.95) !important;
+        height: calc(var(--icon-size) * 0.95) !important;
+      }
+
+      .event-title {
+        font-size: var(--text-medium-large) !important;
+        gap: 0.15rem;
+        flex-wrap: wrap;
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+        width: 100%;
+      }
+      .event-title .lucide {
+        margin-bottom: 0.05rem;
+      }
+      .event-title .owner-badge {
+        margin-top: 0.05rem;
+        font-size: var(--text-extra-small);
+        padding: 0.05rem 0.4rem;
+        min-height: 18px;
+        align-self: flex-start;
+      }
+
+      .event-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        align-items: flex-start;
+        width: 100%;
+        flex-wrap: nowrap;
+      }
+      .event-meta span {
+        white-space: nowrap;
+        font-size: var(--text-extra-small);
+        padding: 0.05rem 0.4rem;
+        width: auto;
+        display: inline-flex;
+      }
+
+      .bucket-item .event-title {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .bucket-item .event-title .owner-badge {
+        align-self: flex-start;
+        margin-top: 0.05rem;
+      }
+      .bucket-item .event-title .lucide {
+        margin-bottom: 0.05rem;
+      }
+
+      .subhead {
+        font-size: var(--text-small);
+        gap: 0.3rem;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .subhead span {
+        padding: 0.15rem 0.6rem;
+        font-size: var(--text-extra-small);
+      }
+      .subhead span .lucide {
+        width: var(--icon-size-tiny) !important;
+        height: var(--icon-size-tiny) !important;
+      }
+
+      .empty-state {
+        font-size: var(--text-medium-small);
+        padding: 1.2rem 0.5rem;
+      }
+      .empty-state .lucide {
+        width: 1.8rem !important;
+        height: 1.8rem !important;
+      }
+
+      .reminder-popover {
+        padding: 0.6rem 0 0.8rem 0;
+      }
+      .reminder-popover .popover-header {
+        padding: 0 1rem 0.4rem 1rem;
+        font-size: var(--text-extra-small);
+      }
+      .reminder-popover .popover-options {
+        padding: 0.2rem 0.4rem;
+      }
+      .reminder-popover .popover-option {
+        padding: 0.5rem 0.7rem;
+        min-height: 44px;
+        font-size: var(--text-medium-small);
+        border-radius: var(--radius-btn);
+      }
+      .reminder-popover .popover-header .close-btn {
+        min-height: 40px;
+        min-width: 40px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      :root {
+        --spacing-app: 0.6rem 0.6rem;
+        --spacing-card: 0.4rem 0.5rem;
+        --spacing-form: 0.5rem 0.5rem;
+        --radius-app: 1.2rem;
+        --icon-size: 0.9rem;
+      }
+      .event-meta span {
+        font-size: 0.5rem;
+        padding: 0.04rem 0.3rem;
+      }
+      .owner-badge {
+        font-size: 0.5rem;
+        padding: 0.04rem 0.3rem;
+        min-height: 14px;
+      }
+      .event-title {
+        font-size: var(--text-medium) !important;
+      }
+      .event-item .event-actions .btn-icon,
+      .bucket-item .bucket-actions .btn-icon {
+        min-height: 32px;
+        min-width: 32px;
+      }
+      .event-item,
+      .bucket-item {
+        gap: 0.2rem 0.4rem;
+        padding: 0.3rem 0.4rem;
+      }
+      .reminder-popover .popover-option {
+        min-height: 38px;
+        padding: 0.3rem 0.5rem;
+        font-size: var(--text-small);
+      }
+      .reminder-popover {
+        padding: 0.4rem 0 0.6rem 0;
+      }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --color-bg-body: #1a1714;
+        --color-bg-app: rgba(30, 26, 22, 0.82);
+        --color-bg-card: rgba(42, 38, 34, 0.9);
+        --color-bg-card-hover: rgba(50, 45, 40, 0.95);
+        --color-bg-subtle: rgba(42, 38, 34, 0.5);
+        --color-bg-tag: rgba(60, 55, 50, 0.4);
+        --color-bg-input: rgba(42, 38, 34, 0.9);
+        --color-border-light: rgba(160, 150, 140, 0.12);
+        --color-border-card: rgba(160, 150, 140, 0.06);
+        --color-border-card-hover: rgba(160, 150, 140, 0.18);
+        --color-border-input: rgba(160, 150, 140, 0.1);
+        --color-border-input-focus: #9a8e84;
+        --color-text-primary: #f0ece6;
+        --color-text-secondary: #c8c0b8;
+        --color-text-muted: #9a9088;
+        --color-text-soft: #6a625a;
+        --color-text-extra-muted: #4a4440;
+        --color-accent-dark: #f0ece6;
+        --color-accent-dark-hover: #d8d0c8;
+        --color-accent-white: #1a1714;
+        --color-shadow: rgba(0, 0, 0, 0.2);
+        --color-bg-reminder: #3a2e24;
+        --color-danger-bg: #3a2824;
+        --color-danger-text: #e07a6a;
+        --color-done: #7aaa8a;
+        --color-owner-a: #8aa8c0;
+        --color-owner-b: #d4a0a0;
+        --color-owner-both: #b0a89e;
+        --color-calendar: #8aa8c0;
+      }
+      .app {
+        border-color: rgba(255, 255, 255, 0.05);
+      }
+      .tab-btn.active {
+        background: var(--color-accent-dark);
+        color: var(--color-accent-white);
+      }
+      .tab-btn:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .add-form button {
+        background: var(--color-accent-dark);
+        color: var(--color-accent-white);
+      }
+      .add-form button:hover {
+        background: var(--color-accent-dark-hover);
+      }
+      .event-item,
+      .bucket-item {
+        border-color: rgba(160, 150, 140, 0.06);
+      }
+      .event-item:hover,
+      .bucket-item:hover {
+        border-color: rgba(160, 150, 140, 0.15);
+      }
+      .event-meta span {
+        border-color: rgba(255, 255, 255, 0.04);
+      }
+      .owner-badge.owner-a {
+        background: rgba(138, 168, 192, 0.15);
+      }
+      .owner-badge.owner-b {
+        background: rgba(212, 160, 160, 0.18);
+      }
+      .owner-badge.owner-both {
+        background: rgba(176, 168, 158, 0.12);
+      }
+      .reminder-badge {
+        background: #3a2e24;
+        color: #c8a88a;
+      }
+      .reminder-badge .lucide {
+        fill: #c8a88a;
+        stroke: #c8a88a;
+      }
+      .btn-icon.calendar-btn:hover {
+        background: rgba(138, 168, 192, 0.12);
+        color: var(--color-calendar);
+      }
+      .reminder-popover {
+        border-top-color: rgba(255, 255, 255, 0.06);
+      }
+      .reminder-popover .popover-option:hover {
+        background: rgba(160, 150, 140, 0.08);
+      }
+      .reminder-popover .popover-option.active {
+        background: rgba(160, 150, 140, 0.15);
+      }
+      .reminder-overlay {
+        background: rgba(0, 0, 0, 0.4);
+      }
+      @media (min-width: 641px) {
+        .reminder-popover {
+          border: 1px solid rgba(160, 150, 140, 0.15);
+        }
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- header -->
+    <div class="app-header">
+      <h1>
+        <i data-lucide="calendar-heart" class="lucide"></i>
+        couple<span><small>· shared</small></span>
+      </h1>
+      <span class="header-badge">
+        <i data-lucide="users" class="lucide"></i>
+        A · A+B · B
+      </span>
+    </div>
+
+    <div class="subhead">
+      <span>
+        <i data-lucide="sparkles" class="lucide"></i>
+        events · bucket · reminder
+      </span>
+      <span id="dateLabel">
+        <i data-lucide="calendar" class="lucide"></i>
+        today
+      </span>
+    </div>
+
+    <!-- tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-panel="events">
+        <i data-lucide="calendar-days" class="lucide"></i>
+        <span>Events</span>
+      </button>
+      <button class="tab-btn" data-panel="bucket">
+        <i data-lucide="backpack" class="lucide"></i>
+        <span>Bucket</span>
+      </button>
+    </div>
+
+    <!-- PANEL: EVENTS -->
+    <div id="panel-events" class="panel active">
+      <ul class="event-list" id="eventList"></ul>
+
+      <form class="add-form" id="eventForm" onsubmit="return false;">
+        <input type="text" id="eventTitle" placeholder="Event name" />
+        <input type="date" id="eventDate" />
+        <input type="time" id="eventTime" />
+        <select id="eventOwner">
+          <option value="a">Partner A</option>
+          <option value="both" selected>Both</option>
+          <option value="b">Partner B</option>
+        </select>
+        <button type="button" id="addEventBtn">
+          <i data-lucide="plus" class="lucide"></i>
+          Add
+        </button>
+      </form>
+      <div class="form-hint">
+        <i data-lucide="bell" class="lucide"></i>
+        Click the bell to set a reminder ·
+        <i data-lucide="calendar-plus" class="lucide"></i>
+        Add to phone calendar
+      </div>
+    </div>
+
+    <!-- PANEL: BUCKET -->
+    <div id="panel-bucket" class="panel">
+      <ul class="bucket-list" id="bucketList"></ul>
+
+      <form class="add-form" id="bucketForm" onsubmit="return false;">
+        <input type="text" id="bucketInput" placeholder="Add to bucket list" />
+        <select id="bucketOwner">
+          <option value="a">Partner A</option>
+          <option value="both" selected>Both</option>
+          <option value="b">Partner B</option>
+        </select>
+        <button type="button" id="addBucketBtn">
+          <i data-lucide="plus" class="lucide"></i>
+          Add
+        </button>
+      </form>
+      <div class="form-hint">
+        <i data-lucide="list-check" class="lucide"></i>
+        Toggle done ·
+        <i data-lucide="x" class="lucide"></i>
+        Remove
+      </div>
+    </div>
+
+    <hr class="app-divider" />
+    <div class="footer-note">
+      <i data-lucide="sparkles" class="lucide"></i>
+      minimalist · shared calendar with reminders &amp; bucket list
+      <i data-lucide="sparkles" class="lucide"></i>
+    </div>
+  </div>
+
+  <!-- Reminder Popover (mobile bottom sheet) -->
+  <div class="reminder-overlay" id="reminderOverlay"></div>
+  <div class="reminder-popover" id="reminderPopover">
+    <div class="popover-handle"></div>
+    <div class="popover-header">
+      <span><i data-lucide="bell" class="lucide"></i> Remind me</span>
+      <button class="close-btn" id="popoverCloseBtn" title="Cancel">
+        <i data-lucide="x" class="lucide"></i>
+      </button>
+    </div>
+    <div class="popover-options" id="popoverOptions">
+      <!-- Options injected by JS -->
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
+  </script>
+  <script>
+    (function() {
+      "use strict";
+
+      // ----- data -----
+      let events = [
+        { id: 'e1', title: 'Movie night', date: '2026-08-25', time: '18:30', reminder: '30m', owner: 'both' },
+        { id: 'e2', title: 'Dinner reservation', date: '2026-08-27', time: '20:00', reminder: null, owner: 'a' },
+      ];
+
+      let bucketItems = [
+        { id: 'b1', title: 'Hike Patagonia', done: false, owner: 'b' },
+        { id: 'b2', title: 'Sushi omakase', done: true, owner: 'both' },
+      ];
+
+      function uid() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      }
+
+      function getOwnerBadge(owner) {
+        const labels = { a: 'A', both: 'A+B', b: 'B' };
+        const classes = { a: 'owner-a', both: 'owner-both', b: 'owner-b' };
+        return '<span class="owner-badge ' + (classes[owner] || '') + '">' + (labels[owner] || '') + '</span>';
+      }
+
+      // ----- ICS / Calendar export -----
+      function addToCalendar(event) {
+        if (!event || !event.date) {
+          alert('This event has no date set.');
+          return;
+        }
+
+        const title = event.title || 'Untitled Event';
+        const dateStr = event.date;
+        const timeStr = event.time || '00:00';
+        const dateTime = dateStr.replace(/-/g, '') + 'T' + timeStr.replace(/:/g, '') + '00';
+
+        const startDate = new Date(dateStr + 'T' + (timeStr || '00:00'));
+        const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        const endDateStr = endDate.toISOString().replace(/[-:]/g, '').slice(0, 15) + '00';
+
+        const uid = 'event-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6) + '@couple.app';
+
+        let icsLines = [
+          'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//couple calendar//EN',
+          'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', 'UID:' + uid, 'SUMMARY:' + title,
+          'DTSTART:' + dateTime, 'DTEND:' + endDateStr, 'DESCRIPTION:Shared couple event'
+        ];
+
+        if (event.reminder) {
+          let trigger = '-PT15M';
+          if (event.reminder === '30m') trigger = '-PT30M';
+          else if (event.reminder === '1h') trigger = '-PT1H';
+          else if (event.reminder === '1d') trigger = '-P1D';
+          else if (event.reminder === '1w') trigger = '-P1W';
+
+          icsLines.push('BEGIN:VALARM', 'TRIGGER:' + trigger, 'ACTION:DISPLAY',
+            'DESCRIPTION:Reminder for ' + title, 'END:VALARM');
+        }
+
+        icsLines.push('END:VEVENT', 'END:VCALENDAR');
+
+        const icsContent = icsLines.join('\n');
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'event-' + (event.title || 'untitled').replace(/\s+/g, '-') + '.ics';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      }
+
+      // ----- render functions -----
+      function renderEvents() {
+        const container = document.getElementById('eventList');
+        if (!container) return;
+        if (events.length === 0) {
+          container.innerHTML =
+            '<div class="empty-state"><i data-lucide="calendar-plus" class="lucide"></i><span class="empty-label">No events yet — add one</span></div>';
+          lucide.createIcons();
+          return;
+        }
+        let html = '';
+        for (let i = 0; i < events.length; i++) {
+          const ev = events[i];
+          const remindIcon = ev.reminder ? 'bell' : 'bell-off';
+          const ownerBadge = getOwnerBadge(ev.owner || 'both');
+          const reminderLabel = ev.reminder ? ev.reminder : '';
+
+          html += '<li class="event-item" data-id="' + ev.id + '">';
+          html += '  <div class="event-info">';
+          html += '    <span class="event-title"><i data-lucide="calendar-check" class="lucide"></i> ' + ev.title + ' ' +
+            ownerBadge + '</span>';
+          html += '    <div class="event-meta">';
+          html += '      <span><i data-lucide="calendar" class="lucide"></i> ' + ev.date + '</span>';
+          if (ev.time) {
+            html += '      <span><i data-lucide="clock" class="lucide"></i> ' + ev.time + '</span>';
+          }
+          if (ev.reminder) {
+            html += '      <span class="reminder-badge"><i data-lucide="bell" class="lucide"></i> ' + ev.reminder +
+              ' before</span>';
+          }
+          html += '    </div>';
+          html += '  </div>';
+          html += '  <div class="event-actions">';
+          html +=
+            '    <button class="btn-icon calendar-btn" data-action="calendar" data-id="' + ev.id + '" title="Add to phone calendar"><i data-lucide="calendar-plus" class="lucide"></i></button>';
+          html +=
+            '    <button class="btn-icon reminder-btn" data-action="remind" data-id="' + ev.id + '" title="Set reminder">';
+          html += '      <i data-lucide="' + remindIcon + '" class="lucide"></i>';
+          if (reminderLabel) {
+            html += '      <span class="reminder-label">' + reminderLabel + '</span>';
+          }
+          html += '    </button>';
+          html +=
+            '    <button class="btn-icon danger" data-action="delete" data-id="' + ev.id + '" title="delete"><i data-lucide="x" class="lucide"></i></button>';
+          html += '  </div>';
+          html += '</li>';
+        }
+        container.innerHTML = html;
+        lucide.createIcons();
+      }
+
+      function renderBucket() {
+        const container = document.getElementById('bucketList');
+        if (!container) return;
+        if (bucketItems.length === 0) {
+          container.innerHTML =
+            '<div class="empty-state"><i data-lucide="backpack" class="lucide"></i><span class="empty-label">Bucket list is empty — add a dream</span></div>';
+          lucide.createIcons();
+          return;
+        }
+        let html = '';
+        for (let i = 0; i < bucketItems.length; i++) {
+          const item = bucketItems[i];
+          const doneClass = item.done ? 'done' : '';
+          const icon = item.done ? 'list-check' : 'list-todo';
+          const ownerBadge = getOwnerBadge(item.owner || 'both');
+          html += '<li class="bucket-item ' + doneClass + '" data-id="' + item.id + '">';
+          html += '  <span class="event-title"><i data-lucide="' + icon + '" class="lucide"></i> ' + item.title + ' ' +
+            ownerBadge + '</span>';
+          html += '  <div class="bucket-actions">';
+          html +=
+            '    <button class="btn-icon" data-action="toggleBucket" data-id="' + item.id + '" title="toggle done"><i data-lucide="check" class="lucide"></i></button>';
+          html +=
+            '    <button class="btn-icon danger" data-action="deleteBucket" data-id="' + item.id + '" title="delete"><i data-lucide="x" class="lucide"></i></button>';
+          html += '  </div>';
+          html += '</li>';
+        }
+        container.innerHTML = html;
+        lucide.createIcons();
+      }
+
+      // ----- Popover logic (FIXED) -----
+      let activeEventId = null;
+      const popoverEl = document.getElementById('reminderPopover');
+      const overlayEl = document.getElementById('reminderOverlay');
+      const optionsContainer = document.getElementById('popoverOptions');
+      const closeBtn = document.getElementById('popoverCloseBtn');
+
+      const reminderOptions = [
+        { value: null, label: 'Off', icon: 'bell-off' },
+        { value: '15m', label: '15 minutes', icon: 'clock' },
+        { value: '30m', label: '30 minutes', icon: 'clock' },
+        { value: '1h', label: '1 hour', icon: 'clock' },
+        { value: '1d', label: '1 day', icon: 'calendar' },
+        { value: '1w', label: '1 week', icon: 'calendar' }
+      ];
+
+      function closePopover() {
+        popoverEl.classList.remove('active');
+        overlayEl.classList.remove('active');
+        activeEventId = null;
+        document.removeEventListener('click', outsideClickHandler);
+      }
+
+      function outsideClickHandler(e) {
+        if (popoverEl && !popoverEl.contains(e.target) && !e.target.closest('.reminder-btn')) {
+          closePopover();
+        }
+      }
+
+      function openPopover(eventId, buttonElement) {
+        // Close any open popover first
+        closePopover();
+
+        const ev = events.find(function(item) { return item.id === eventId; });
+        if (!ev) return;
+
+        activeEventId = eventId;
+
+        // Build options
+        let optionsHtml = '';
+        reminderOptions.forEach(function(opt) {
+          const isActive = (ev.reminder === opt.value);
+          // Show check-circle if active and not "Off", otherwise show the option icon
+          let iconName = opt.icon;
+          if (isActive && opt.value !== null) {
+            iconName = 'check-circle';
+          } else if (isActive && opt.value === null) {
+            iconName = 'check-circle';
+          }
+          optionsHtml +=
+            '<button class="popover-option' + (isActive ? ' active' : '') + '" data-reminder-value="' + (opt.value === null ?
+              'null' : opt.value) + '">';
+          optionsHtml += '  <span class="option-label"><i data-lucide="' + iconName + '" class="lucide"></i> ' + opt.label +
+            '</span>';
+          optionsHtml += '  <span class="check"><i data-lucide="check" class="lucide"></i></span>';
+          optionsHtml += '</button>';
+        });
+        optionsContainer.innerHTML = optionsHtml;
+
+        // Re-create icons
+        lucide.createIcons();
+
+        // --- Event delegation for options (FIXED: using direct click on container) ---
+        // Remove old listener to avoid duplicates
+        optionsContainer.removeEventListener('click', handleOptionClick);
+        optionsContainer.addEventListener('click', handleOptionClick);
+
+        // --- Positioning ---
+        const isDesktop = window.innerWidth >= 641;
+
+        if (isDesktop) {
+          // Desktop: floating popover
+          const rect = buttonElement.getBoundingClientRect();
+          const popoverWidth = 190;
+          let left = rect.left + rect.width / 2 - popoverWidth / 2;
+          let top = rect.bottom + 8;
+
+          if (left < 10) left = 10;
+          if (left + popoverWidth > window.innerWidth - 10) left = window.innerWidth - popoverWidth - 10;
+          if (top + 220 > window.innerHeight) {
+            top = rect.top - 220;
+          }
+
+          popoverEl.style.left = left + 'px';
+          popoverEl.style.top = top + 'px';
+          popoverEl.style.right = 'auto';
+          popoverEl.style.bottom = 'auto';
+          popoverEl.style.transform = 'scale(0.96)';
+          popoverEl.style.opacity = '0';
+          popoverEl.style.visibility = 'hidden';
+          popoverEl.style.pointerEvents = 'none';
+          popoverEl.style.display = 'block';
+
+          requestAnimationFrame(function() {
+            popoverEl.style.opacity = '1';
+            popoverEl.style.transform = 'scale(1)';
+            popoverEl.style.visibility = 'visible';
+            popoverEl.style.pointerEvents = 'all';
+            popoverEl.classList.add('active');
+          });
+
+          // Outside click for desktop
+          setTimeout(function() {
+            document.addEventListener('click', outsideClickHandler);
+          }, 50);
+        } else {
+          // Mobile: bottom sheet
+          popoverEl.style.left = '0';
+          popoverEl.style.right = '0';
+          popoverEl.style.top = 'auto';
+          popoverEl.style.bottom = '0';
+          popoverEl.style.transform = 'translateY(100%)';
+          popoverEl.style.opacity = '1';
+          popoverEl.style.visibility = 'visible';
+          popoverEl.style.pointerEvents = 'all';
+          popoverEl.style.display = 'block';
+
+          overlayEl.classList.add('active');
+
+          requestAnimationFrame(function() {
+            popoverEl.classList.add('active');
+            popoverEl.style.transform = 'translateY(0)';
+          });
+        }
+      }
+
+      // ----- Handle option click (FIXED: delegated) -----
+      function handleOptionClick(e) {
+        const btn = e.target.closest('.popover-option');
+        if (!btn) return;
+
+        const value = btn.getAttribute('data-reminder-value');
+        const parsedValue = value === 'null' ? null : value;
+
+        if (activeEventId) {
+          setReminder(activeEventId, parsedValue);
+          closePopover();
+        }
+      }
+
+      // ----- set reminder -----
+      function setReminder(eventId, value) {
+        const ev = events.find(function(item) { return item.id === eventId; });
+        if (ev) {
+          ev.reminder = value;
+          renderEvents();
+        }
+      }
+
+      // ----- add functions -----
+      function addEvent() {
+        const titleInput = document.getElementById('eventTitle');
+        const dateInput = document.getElementById('eventDate');
+        const timeInput = document.getElementById('eventTime');
+        const ownerSelect = document.getElementById('eventOwner');
+        const title = titleInput.value.trim();
+        const date = dateInput.value;
+        const time = timeInput.value;
+        const owner = ownerSelect.value;
+        if (!title) { alert('Please enter an event name');
+          titleInput.focus(); return; }
+        if (!date) { alert('Please select a date');
+          dateInput.focus(); return; }
+        events.push({ id: uid(), title, date, time: time || '', reminder: null, owner });
+        titleInput.value = '';
+        dateInput.value = '';
+        timeInput.value = '';
+        ownerSelect.value = 'both';
+        setDefaultDate();
+        renderEvents();
+        titleInput.focus();
+      }
+
+      function addBucket() {
+        const input = document.getElementById('bucketInput');
+        const ownerSelect = document.getElementById('bucketOwner');
+        const val = input.value.trim();
+        const owner = ownerSelect.value;
+        if (!val) { alert('Please enter a bucket item');
+          input.focus(); return; }
+        bucketItems.push({ id: uid(), title: val, done: false, owner });
+        input.value = '';
+        ownerSelect.value = 'both';
+        renderBucket();
+        input.focus();
+      }
+
+      // ----- setup listeners -----
+      function setupListeners() {
+        document.getElementById('addEventBtn').addEventListener('click', addEvent);
+        document.getElementById('addBucketBtn').addEventListener('click', addBucket);
+
+        ['eventTitle', 'eventDate', 'eventTime', 'eventOwner'].forEach(function(id) {
+          document.getElementById(id).addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault();
+              addEvent(); }
+          });
+        });
+        ['bucketInput', 'bucketOwner'].forEach(function(id) {
+          document.getElementById(id).addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault();
+              addBucket(); }
+          });
+        });
+
+        // Event list delegation
+        document.getElementById('eventList').addEventListener('click', function(e) {
+          const btn = e.target.closest('button[data-action]');
+          if (!btn) return;
+          const action = btn.getAttribute('data-action');
+          const id = btn.getAttribute('data-id');
+          if (!id) return;
+
+          const ev = events.find(function(item) { return item.id === id; });
+
+          if (action === 'delete') {
+            events = events.filter(function(item) { return item.id !== id; });
+            renderEvents();
+          } else if (action === 'remind') {
+            if (ev) {
+              closePopover();
+              openPopover(id, btn);
+            }
+          } else if (action === 'calendar') {
+            if (ev) { addToCalendar(ev); }
+          }
+        });
+
+        // Bucket list delegation
+        document.getElementById('bucketList').addEventListener('click', function(e) {
+          const btn = e.target.closest('button[data-action]');
+          if (!btn) return;
+          const action = btn.getAttribute('data-action');
+          const id = btn.getAttribute('data-id');
+          if (!id) return;
+
+          if (action === 'deleteBucket') {
+            bucketItems = bucketItems.filter(function(item) { return item.id !== id; });
+            renderBucket();
+          } else if (action === 'toggleBucket') {
+            for (let i = 0; i < bucketItems.length; i++) {
+              if (bucketItems[i].id === id) {
+                bucketItems[i].done = !bucketItems[i].done;
+                break;
+              }
+            }
+            renderBucket();
+          }
+        });
+
+        // --- Close popover: overlay click ---
+        overlayEl.addEventListener('click', function(e) {
+          if (e.target === overlayEl) {
+            closePopover();
+          }
+        });
+
+        // --- Close popover: close button ---
+        closeBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closePopover();
+        });
+
+        // --- Close popover: Escape key ---
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            closePopover();
+          }
+        });
+
+        // --- Handle resize: close popover on orientation change ---
+        window.addEventListener('resize', function() {
+          if (popoverEl.classList.contains('active')) {
+            closePopover();
+          }
+        });
+      }
+
+      // ----- tabs -----
+      function setupTabs() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        const panels = { events: document.getElementById('panel-events'), bucket: document.getElementById('panel-bucket') };
+        tabs.forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            tabs.forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            const panelName = this.getAttribute('data-panel');
+            Object.keys(panels).forEach(function(key) {
+              panels[key].classList.toggle('active', key === panelName);
+            });
+            lucide.createIcons();
+            closePopover();
+          });
+        });
+      }
+
+      // ----- date helpers -----
+      function setDateLabel() {
+        const d = new Date();
+        const y = d.getFullYear(),
+          m = String(d.getMonth() + 1).padStart(2, '0'),
+          day = String(d.getDate()).padStart(2, '0');
+        const label = document.getElementById('dateLabel');
+        if (label) { label.innerHTML = '<i data-lucide="calendar" class="lucide"></i> ' + y + '-' + m + '-' + day;
+          lucide.createIcons(); }
+      }
+
+      function setDefaultDate() {
+        const dateInput = document.getElementById('eventDate');
+        if (dateInput) {
+          const today = new Date();
+          const y = today.getFullYear(),
+            m = String(today.getMonth() + 1).padStart(2, '0'),
+            d = String(today.getDate()).padStart(2, '0');
+          dateInput.value = y + '-' + m + '-' + d;
+        }
+      }
+
+      // ----- init -----
+      function init() {
+        setDateLabel();
+        setDefaultDate();
+        renderEvents();
+        renderBucket();
+        setupListeners();
+        setupTabs();
+        lucide.createIcons();
+      }
+
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+      else init();
+    })();
+  </script>
+</body>
+</html>
