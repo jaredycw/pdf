@@ -54,6 +54,7 @@
       --color-owner-a: #7a8fa6;
       --color-owner-b: #d4a0a0;
       --color-owner-both: #b0a89e;
+      --color-note: #8b7e72;
 
       --radius-app: 2.8rem;
       --radius-card: 1.6rem;
@@ -121,7 +122,8 @@
     .lucide.lucide-check,
     .lucide.lucide-list-check,
     .lucide.lucide-list-todo,
-    .lucide.lucide-calendar-plus {
+    .lucide.lucide-calendar-plus,
+    .lucide.lucide-sticky-note {
       width: var(--icon-size) !important;
       height: var(--icon-size) !important;
     }
@@ -301,6 +303,7 @@
       gap: 0.5rem;
       position: relative;
       overflow: hidden;
+      cursor: pointer;
     }
     .event-item::before,
     .bucket-item::before {
@@ -334,6 +337,7 @@
       gap: 0.2rem;
       flex: 1;
       min-width: 0;
+      pointer-events: none;
     }
     .event-title {
       font-weight: 510;
@@ -379,11 +383,30 @@
       height: 0.65rem !important;
       opacity: 0.6;
     }
+
+    /* Note indicator */
+    .note-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-size: var(--text-extra-small);
+      color: var(--color-note);
+      background: rgba(139, 126, 114, 0.1);
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--radius-badge);
+      border: 1px solid rgba(139, 126, 114, 0.1);
+    }
+    .note-indicator .lucide {
+      width: 0.6rem !important;
+      height: 0.6rem !important;
+    }
+
     .event-actions,
     .bucket-actions {
       display: flex;
       gap: 0.1rem;
       flex-shrink: 0;
+      pointer-events: auto;
     }
 
     .btn-icon {
@@ -424,6 +447,13 @@
     .btn-icon.calendar-btn:hover {
       background: rgba(122, 143, 166, 0.12);
       color: var(--color-calendar);
+    }
+    .btn-icon.note-btn:hover {
+      background: rgba(139, 126, 114, 0.12);
+      color: var(--color-note);
+    }
+    .btn-icon.note-btn.has-note {
+      color: var(--color-note);
     }
 
     .reminder-label {
@@ -669,9 +699,9 @@
     }
 
     /* ================================================
-       REMINDER POPOVER — SIMPLE RELIABLE APPROACH
+       NOTE MODAL / SHEET
     ================================================ */
-    .reminder-overlay {
+    .note-overlay {
       position: fixed;
       inset: 0;
       z-index: 999;
@@ -682,12 +712,12 @@
       visibility: hidden;
       transition: opacity 0.3s ease, visibility 0.3s ease;
     }
-    .reminder-overlay.active {
+    .note-overlay.active {
       opacity: 1;
       visibility: visible;
     }
 
-    .reminder-popover {
+    .note-sheet {
       position: fixed;
       z-index: 1000;
       background: var(--color-bg-app);
@@ -697,24 +727,23 @@
       box-shadow: 0 -8px 48px rgba(30, 26, 22, 0.12), 0 -4px 16px rgba(30, 26, 22, 0.04);
       border-top: 1px solid rgba(255, 255, 255, 0.3);
       padding: 0.8rem 0 0.8rem 0;
-      min-width: 200px;
-      transform: translateY(100%);
-      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       left: 0;
       right: 0;
       bottom: 0;
-      max-height: 60vh;
+      max-height: 70vh;
       overflow-y: auto;
       display: none;
+      transform: translateY(100%);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       pointer-events: none;
     }
-    .reminder-popover.active {
+    .note-sheet.active {
       transform: translateY(0);
       display: block;
       pointer-events: all;
     }
 
-    .reminder-popover .popover-handle {
+    .note-sheet .note-handle {
       width: 36px;
       height: 4px;
       border-radius: 4px;
@@ -724,7 +753,7 @@
       flex-shrink: 0;
     }
 
-    .reminder-popover .popover-header {
+    .note-sheet .note-header {
       padding: 0 1.2rem 0.5rem 1.2rem;
       font-size: var(--text-small);
       font-weight: 500;
@@ -735,24 +764,16 @@
       justify-content: space-between;
       border-bottom: 1px solid var(--color-border-light);
     }
-    .reminder-popover .popover-header .header-left {
+    .note-sheet .note-header .header-left {
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      cursor: pointer;
-      padding: 0.2rem 0.3rem;
-      border-radius: var(--radius-btn);
-      transition: background 0.15s ease;
-      user-select: none;
     }
-    .reminder-popover .popover-header .header-left:hover {
-      background: var(--color-bg-subtle);
-    }
-    .reminder-popover .popover-header .lucide {
+    .note-sheet .note-header .lucide {
       width: var(--icon-size-small) !important;
       height: var(--icon-size-small) !important;
     }
-    .reminder-popover .popover-header .close-btn {
+    .note-sheet .note-header .close-btn {
       background: transparent;
       border: none;
       color: var(--color-text-muted);
@@ -766,87 +787,114 @@
       min-height: 36px;
       min-width: 36px;
     }
-    .reminder-popover .popover-header .close-btn:hover {
+    .note-sheet .note-header .close-btn:hover {
       background: var(--color-bg-subtle);
     }
-    .reminder-popover .popover-header .close-btn .lucide {
+    .note-sheet .note-header .close-btn .lucide {
       width: var(--icon-size-small) !important;
       height: var(--icon-size-small) !important;
     }
 
-    .reminder-popover .popover-options {
-      display: flex;
-      flex-direction: column;
-      gap: 0.1rem;
-      padding: 0.4rem 0.6rem;
+    .note-sheet .note-body {
+      padding: 0.6rem 1.2rem 1rem 1.2rem;
     }
-
-    .reminder-popover .popover-option {
+    .note-sheet .note-body .note-event-title {
+      font-size: var(--text-medium);
+      font-weight: 510;
+      color: var(--color-text-primary);
+      margin-bottom: 0.5rem;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 0.4rem;
+    }
+    .note-sheet .note-body .note-event-title .lucide {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+      color: var(--color-text-muted);
+      opacity: 0.5;
+    }
+    .note-sheet .note-body textarea {
       width: 100%;
-      padding: 0.6rem 0.8rem;
-      background: transparent;
-      border: none;
-      border-radius: var(--radius-btn);
+      min-height: 100px;
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--color-border-input);
+      border-radius: var(--radius-input);
       font-size: var(--text-medium-small);
       font-family: var(--font-stack);
       color: var(--color-text-primary);
+      background: var(--color-bg-input);
+      resize: vertical;
+      outline: none;
+      transition: all 0.25s ease;
+      backdrop-filter: blur(4px);
+      line-height: 1.6;
+    }
+    .note-sheet .note-body textarea::placeholder {
+      color: var(--color-text-soft);
+      font-weight: 400;
+    }
+    .note-sheet .note-body textarea:focus {
+      border-color: var(--color-border-input-focus);
+      box-shadow: 0 0 0 4px rgba(139, 126, 114, 0.08);
+    }
+    .note-sheet .note-body .note-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+      justify-content: flex-end;
+    }
+    .note-sheet .note-body .note-actions button {
+      padding: 0.5rem 1.2rem;
+      border: none;
+      border-radius: var(--radius-btn);
+      font-size: var(--text-medium-small);
+      font-weight: 500;
+      font-family: var(--font-stack);
       cursor: pointer;
-      transition: background 0.15s ease;
-      gap: 0.6rem;
-      min-height: 48px;
-      text-align: left;
-    }
-    .reminder-popover .popover-option:hover {
-      background: var(--color-bg-subtle);
-    }
-    .reminder-popover .popover-option:active {
-      transform: scale(0.97);
-      transition-duration: 0.05s;
-    }
-    .reminder-popover .popover-option .option-label {
+      transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      min-height: var(--touch-min);
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.3rem;
     }
-    .reminder-popover .popover-option .option-label .lucide {
-      width: var(--icon-size-small) !important;
-      height: var(--icon-size-small) !important;
-      opacity: 0.5;
+    .note-sheet .note-body .note-actions .btn-save {
+      background: var(--color-accent-dark);
+      color: var(--color-accent-white);
+      box-shadow: 0 4px 16px rgba(30, 26, 22, 0.08);
     }
-    .reminder-popover .popover-option.active {
-      background: var(--color-bg-tag);
-      font-weight: 500;
+    .note-sheet .note-body .note-actions .btn-save:hover {
+      background: var(--color-accent-dark-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(30, 26, 22, 0.12);
     }
-    .reminder-popover .popover-option.active .option-label .lucide {
-      opacity: 1;
-      color: var(--color-owner-a);
+    .note-sheet .note-body .note-actions .btn-save:active {
+      transform: scale(0.96);
     }
-    .reminder-popover .popover-option .check {
-      opacity: 0;
-      transition: opacity 0.15s ease;
-      color: var(--color-owner-a);
+    .note-sheet .note-body .note-actions .btn-delete-note {
+      background: var(--color-danger-bg);
+      color: var(--color-danger-text);
     }
-    .reminder-popover .popover-option.active .check {
-      opacity: 1;
+    .note-sheet .note-body .note-actions .btn-delete-note:hover {
+      background: #fde0db;
     }
-    .reminder-popover .popover-option .check .lucide {
+    .note-sheet .note-body .note-actions .btn-delete-note:active {
+      transform: scale(0.96);
+    }
+    .note-sheet .note-body .note-actions .btn-delete-note .lucide {
       width: var(--icon-size-small) !important;
       height: var(--icon-size-small) !important;
     }
 
-    /* Desktop: floating popover */
+    /* Desktop note sheet */
     @media (min-width: 641px) {
-      .reminder-popover {
+      .note-sheet {
         position: fixed;
         border-radius: var(--radius-card);
         box-shadow: 0 16px 48px rgba(30, 26, 22, 0.12), 0 4px 12px rgba(30, 26, 22, 0.04);
         border: 1px solid var(--color-border-light);
         padding: 0.4rem 0;
-        min-width: 150px;
-        max-width: 220px;
+        min-width: 320px;
+        max-width: 400px;
         max-height: 80vh;
         left: auto;
         right: auto;
@@ -858,37 +906,41 @@
         visibility: hidden;
         pointer-events: none;
         display: block;
+        overflow-y: auto;
       }
-      .reminder-popover.active {
+      .note-sheet.active {
         opacity: 1;
         visibility: visible;
         pointer-events: all;
         transform: scale(1);
         display: block;
       }
-      .reminder-popover .popover-handle {
+      .note-sheet .note-handle {
         display: none;
       }
-      .reminder-popover .popover-header {
+      .note-sheet .note-header {
         padding: 0.2rem 0.8rem 0.3rem 0.8rem;
         font-size: var(--text-extra-small);
         border-bottom: 1px solid var(--color-border-light);
       }
-      .reminder-popover .popover-header .close-btn {
+      .note-sheet .note-header .close-btn {
         min-height: 28px;
         min-width: 28px;
         padding: 0.1rem;
       }
-      .reminder-popover .popover-options {
-        padding: 0.2rem 0.3rem;
+      .note-sheet .note-body {
+        padding: 0.4rem 0.8rem 0.6rem 0.8rem;
       }
-      .reminder-popover .popover-option {
-        padding: 0.3rem 0.6rem;
-        min-height: 34px;
+      .note-sheet .note-body textarea {
+        min-height: 80px;
         font-size: var(--text-small);
-        border-radius: var(--radius-btn);
       }
-      .reminder-overlay {
+      .note-sheet .note-body .note-actions button {
+        min-height: 36px;
+        padding: 0.3rem 0.8rem;
+        font-size: var(--text-small);
+      }
+      .note-overlay {
         display: none;
       }
     }
@@ -1076,25 +1128,28 @@
         height: 1.8rem !important;
       }
 
-      .reminder-popover {
+      .note-sheet {
         padding: 0.6rem 0 0.8rem 0;
       }
-      .reminder-popover .popover-header {
+      .note-sheet .note-header {
         padding: 0 1rem 0.4rem 1rem;
         font-size: var(--text-extra-small);
       }
-      .reminder-popover .popover-options {
-        padding: 0.2rem 0.4rem;
+      .note-sheet .note-body {
+        padding: 0.4rem 1rem 0.8rem 1rem;
       }
-      .reminder-popover .popover-option {
-        padding: 0.5rem 0.7rem;
-        min-height: 44px;
+      .note-sheet .note-body textarea {
+        min-height: 120px;
         font-size: var(--text-medium-small);
-        border-radius: var(--radius-btn);
       }
-      .reminder-popover .popover-header .close-btn {
+      .note-sheet .note-header .close-btn {
         min-height: 40px;
         min-width: 40px;
+      }
+      .note-sheet .note-body .note-actions button {
+        min-height: 40px;
+        padding: 0.4rem 1rem;
+        font-size: var(--text-medium-small);
       }
     }
 
@@ -1128,13 +1183,8 @@
         gap: 0.2rem 0.4rem;
         padding: 0.3rem 0.4rem;
       }
-      .reminder-popover .popover-option {
-        min-height: 38px;
-        padding: 0.3rem 0.5rem;
-        font-size: var(--text-small);
-      }
-      .reminder-popover {
-        padding: 0.4rem 0 0.6rem 0;
+      .note-sheet .note-body textarea {
+        min-height: 90px;
       }
     }
 
@@ -1169,6 +1219,7 @@
         --color-owner-b: #d4a0a0;
         --color-owner-both: #b0a89e;
         --color-calendar: #8aa8c0;
+        --color-note: #b0a89e;
       }
       .app {
         border-color: rgba(255, 255, 255, 0.05);
@@ -1219,20 +1270,43 @@
         background: rgba(138, 168, 192, 0.12);
         color: var(--color-calendar);
       }
-      .reminder-popover {
+      .btn-icon.note-btn:hover {
+        background: rgba(176, 168, 158, 0.12);
+        color: var(--color-note);
+      }
+      .btn-icon.note-btn.has-note {
+        color: var(--color-note);
+      }
+      .note-sheet {
         border-top-color: rgba(255, 255, 255, 0.06);
       }
-      .reminder-popover .popover-option:hover {
-        background: rgba(160, 150, 140, 0.08);
+      .note-sheet .note-body textarea {
+        background: rgba(42, 38, 34, 0.9);
       }
-      .reminder-popover .popover-option.active {
-        background: rgba(160, 150, 140, 0.15);
+      .note-sheet .note-body .note-actions .btn-save {
+        background: var(--color-accent-dark);
+        color: var(--color-accent-white);
       }
-      .reminder-overlay {
+      .note-sheet .note-body .note-actions .btn-save:hover {
+        background: var(--color-accent-dark-hover);
+      }
+      .note-sheet .note-body .note-actions .btn-delete-note {
+        background: #3a2824;
+        color: #e07a6a;
+      }
+      .note-sheet .note-body .note-actions .btn-delete-note:hover {
+        background: #4a342e;
+      }
+      .note-overlay {
         background: rgba(0, 0, 0, 0.4);
       }
+      .note-indicator {
+        background: rgba(176, 168, 158, 0.1);
+        border-color: rgba(176, 168, 158, 0.1);
+        color: var(--color-note);
+      }
       @media (min-width: 641px) {
-        .reminder-popover {
+        .note-sheet {
           border: 1px solid rgba(160, 150, 140, 0.15);
         }
       }
@@ -1255,7 +1329,7 @@
     <div class="subhead">
       <span>
         <i data-lucide="sparkles" class="lucide"></i>
-        events · bucket · reminder
+        events · bucket · notes
       </span>
       <span id="dateLabel">
         <i data-lucide="calendar" class="lucide"></i>
@@ -1293,9 +1367,11 @@
       </form>
       <div class="form-hint">
         <i data-lucide="bell" class="lucide"></i>
-        Click the bell to set a reminder ·
+        Bell for reminder ·
+        <i data-lucide="sticky-note" class="lucide"></i>
+        📝 Note for memories ·
         <i data-lucide="calendar-plus" class="lucide"></i>
-        Add to phone calendar
+        Add to calendar
       </div>
     </div>
 
@@ -1325,25 +1401,41 @@
     <hr class="app-divider" />
     <div class="footer-note">
       <i data-lucide="sparkles" class="lucide"></i>
-      minimalist · shared calendar with reminders &amp; bucket list
+      minimalist · shared calendar with notes &amp; bucket list
       <i data-lucide="sparkles" class="lucide"></i>
     </div>
   </div>
 
-  <!-- ===== REMINDER POPOVER ===== -->
-  <div class="reminder-overlay" id="reminderOverlay"></div>
-  <div class="reminder-popover" id="reminderPopover">
-    <div class="popover-handle"></div>
-    <div class="popover-header">
-      <span class="header-left" id="popoverHeaderClose">
-        <i data-lucide="bell" class="lucide"></i>
-        Remind me
+  <!-- ===== NOTE SHEET ===== -->
+  <div class="note-overlay" id="noteOverlay"></div>
+  <div class="note-sheet" id="noteSheet">
+    <div class="note-handle"></div>
+    <div class="note-header">
+      <span class="header-left">
+        <i data-lucide="sticky-note" class="lucide"></i>
+        Shared Note
       </span>
-      <button class="close-btn" id="popoverCloseBtn" title="Close">
+      <button class="close-btn" id="noteCloseBtn" title="Close">
         <i data-lucide="x" class="lucide"></i>
       </button>
     </div>
-    <div class="popover-options" id="popoverOptions"></div>
+    <div class="note-body">
+      <div class="note-event-title" id="noteEventTitle">
+        <i data-lucide="calendar-check" class="lucide"></i>
+        <span id="noteEventName">Event</span>
+      </div>
+      <textarea id="noteTextarea" placeholder="Write your shared memory here... ✨"></textarea>
+      <div class="note-actions">
+        <button class="btn-delete-note" id="noteDeleteBtn">
+          <i data-lucide="trash-2" class="lucide"></i>
+          Delete
+        </button>
+        <button class="btn-save" id="noteSaveBtn">
+          <i data-lucide="save" class="lucide"></i>
+          Save Note
+        </button>
+      </div>
+    </div>
   </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js">
@@ -1352,16 +1444,20 @@
     (function() {
       "use strict";
 
-      // ----- data -----
+      // ----- data with notes -----
       let events = [
-        { id: 'e1', title: 'Movie night', date: '2026-08-25', time: '18:30', reminder: '30m', owner: 'both' },
-        { id: 'e2', title: 'Dinner reservation', date: '2026-08-27', time: '20:00', reminder: null, owner: 'a' },
+        { id: 'e1', title: 'Movie night', date: '2026-08-25', time: '18:30', reminder: '30m', owner: 'both',
+        note: 'We watched Dune 2! 🎬 Amazing visuals, she fell asleep halfway 😴' },
+        { id: 'e2', title: 'Dinner reservation', date: '2026-08-27', time: '20:00', reminder: null, owner: 'a', note: '' },
       ];
 
       let bucketItems = [
         { id: 'b1', title: 'Hike Patagonia', done: false, owner: 'b' },
         { id: 'b2', title: 'Sushi omakase', done: true, owner: 'both' },
       ];
+
+      // ----- Note state -----
+      let activeNoteEventId = null;
 
       function uid() {
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -1437,11 +1533,16 @@
           const remindIcon = ev.reminder ? 'bell' : 'bell-off';
           const ownerBadge = getOwnerBadge(ev.owner || 'both');
           const reminderLabel = ev.reminder ? ev.reminder : '';
+          const hasNote = ev.note && ev.note.trim().length > 0;
 
           html += '<li class="event-item" data-id="' + ev.id + '">';
           html += '  <div class="event-info">';
           html += '    <span class="event-title"><i data-lucide="calendar-check" class="lucide"></i> ' + ev.title + ' ' +
-            ownerBadge + '</span>';
+            ownerBadge;
+          if (hasNote) {
+            html += '      <span class="note-indicator"><i data-lucide="sticky-note" class="lucide"></i> note</span>';
+          }
+          html += '    </span>';
           html += '    <div class="event-meta">';
           html += '      <span><i data-lucide="calendar" class="lucide"></i> ' + ev.date + '</span>';
           if (ev.time) {
@@ -1454,6 +1555,8 @@
           html += '    </div>';
           html += '  </div>';
           html += '  <div class="event-actions">';
+          html +=
+            '    <button class="btn-icon note-btn' + (hasNote ? ' has-note' : '') + '" data-action="note" data-id="' + ev.id + '" title="Add shared note"><i data-lucide="sticky-note" class="lucide"></i></button>';
           html +=
             '    <button class="btn-icon calendar-btn" data-action="calendar" data-id="' + ev.id + '" title="Add to phone calendar"><i data-lucide="calendar-plus" class="lucide"></i></button>';
           html +=
@@ -1503,137 +1606,111 @@
       }
 
       // =============================================
-      // REMINDER POPOVER — SIMPLE & RELIABLE
+      // NOTE SHEET FUNCTIONS
       // =============================================
-      let activeEventId = null;
-      const popoverEl = document.getElementById('reminderPopover');
-      const overlayEl = document.getElementById('reminderOverlay');
-      const optionsContainer = document.getElementById('popoverOptions');
-      const closeBtn = document.getElementById('popoverCloseBtn');
-      const headerClose = document.getElementById('popoverHeaderClose');
+      const noteOverlay = document.getElementById('noteOverlay');
+      const noteSheet = document.getElementById('noteSheet');
+      const noteTextarea = document.getElementById('noteTextarea');
+      const noteEventName = document.getElementById('noteEventName');
+      const noteSaveBtn = document.getElementById('noteSaveBtn');
+      const noteDeleteBtn = document.getElementById('noteDeleteBtn');
+      const noteCloseBtn = document.getElementById('noteCloseBtn');
 
-      const reminderOptions = [
-        { value: null, label: 'Off', icon: 'bell-off' },
-        { value: '15m', label: '15 minutes', icon: 'clock' },
-        { value: '30m', label: '30 minutes', icon: 'clock' },
-        { value: '1h', label: '1 hour', icon: 'clock' },
-        { value: '1d', label: '1 day', icon: 'calendar' },
-        { value: '1w', label: '1 week', icon: 'calendar' }
-      ];
-
-      // --- CLOSE ---
-      function closePopover() {
-        popoverEl.classList.remove('active');
-        overlayEl.classList.remove('active');
-        activeEventId = null;
+      function closeNoteSheet() {
+        noteSheet.classList.remove('active');
+        noteOverlay.classList.remove('active');
+        activeNoteEventId = null;
       }
 
-      // --- OPEN ---
-      function openPopover(eventId, buttonElement) {
-        // Close any open popover first
-        closePopover();
+      function openNoteSheet(eventId, buttonElement) {
+        // Close any open sheet first
+        closeNoteSheet();
 
         const ev = events.find(function(item) { return item.id === eventId; });
         if (!ev) return;
 
-        activeEventId = eventId;
+        activeNoteEventId = eventId;
+        noteEventName.textContent = ev.title;
+        noteTextarea.value = ev.note || '';
 
-        // Build options
-        let optionsHtml = '';
-        reminderOptions.forEach(function(opt) {
-          const isActive = (ev.reminder === opt.value);
-          let iconName = opt.icon;
-          if (isActive) {
-            iconName = 'check-circle';
-          }
-          optionsHtml +=
-            '<button class="popover-option' + (isActive ? ' active' : '') + '" data-reminder-value="' + (opt.value === null ?
-              'null' : opt.value) + '">';
-          optionsHtml += '  <span class="option-label"><i data-lucide="' + iconName + '" class="lucide"></i> ' + opt.label +
-            '</span>';
-          optionsHtml += '  <span class="check"><i data-lucide="check" class="lucide"></i></span>';
-          optionsHtml += '</button>';
-        });
-        optionsContainer.innerHTML = optionsHtml;
-        lucide.createIcons();
-
-        // --- Position ---
+        // Position for desktop
         const isDesktop = window.innerWidth >= 641;
 
         if (isDesktop) {
           const rect = buttonElement.getBoundingClientRect();
-          const popoverWidth = 190;
-          let left = rect.left + rect.width / 2 - popoverWidth / 2;
-          let top = rect.bottom + 8;
+          const sheetWidth = 340;
+          let left = rect.left + rect.width / 2 - sheetWidth / 2;
+          let top = rect.top - 160;
 
           if (left < 10) left = 10;
-          if (left + popoverWidth > window.innerWidth - 10) left = window.innerWidth - popoverWidth - 10;
-          if (top + 220 > window.innerHeight) {
-            top = rect.top - 220;
-          }
+          if (left + sheetWidth > window.innerWidth - 10) left = window.innerWidth - sheetWidth - 10;
+          if (top < 10) top = rect.bottom + 10;
+          if (top + 280 > window.innerHeight) top = 10;
 
-          popoverEl.style.left = left + 'px';
-          popoverEl.style.top = top + 'px';
-          popoverEl.style.right = 'auto';
-          popoverEl.style.bottom = 'auto';
+          noteSheet.style.left = left + 'px';
+          noteSheet.style.top = top + 'px';
+          noteSheet.style.right = 'auto';
+          noteSheet.style.bottom = 'auto';
+          noteSheet.style.transform = 'scale(0.96)';
+          noteSheet.style.opacity = '0';
+          noteSheet.style.visibility = 'hidden';
+          noteSheet.style.pointerEvents = 'none';
+          noteSheet.style.display = 'block';
 
-          // Show with animation
-          popoverEl.style.display = 'block';
           requestAnimationFrame(function() {
-            popoverEl.classList.add('active');
+            noteSheet.style.opacity = '1';
+            noteSheet.style.transform = 'scale(1)';
+            noteSheet.style.visibility = 'visible';
+            noteSheet.style.pointerEvents = 'all';
+            noteSheet.classList.add('active');
           });
         } else {
           // Mobile: bottom sheet
-          popoverEl.style.left = '0';
-          popoverEl.style.right = '0';
-          popoverEl.style.top = 'auto';
-          popoverEl.style.bottom = '0';
-          popoverEl.style.display = 'block';
+          noteSheet.style.left = '0';
+          noteSheet.style.right = '0';
+          noteSheet.style.top = 'auto';
+          noteSheet.style.bottom = '0';
+          noteSheet.style.transform = 'translateY(100%)';
+          noteSheet.style.opacity = '1';
+          noteSheet.style.visibility = 'visible';
+          noteSheet.style.pointerEvents = 'all';
+          noteSheet.style.display = 'block';
 
-          overlayEl.classList.add('active');
+          noteOverlay.classList.add('active');
 
           requestAnimationFrame(function() {
-            popoverEl.classList.add('active');
+            noteSheet.classList.add('active');
+            noteSheet.style.transform = 'translateY(0)';
           });
         }
+
+        // Focus the textarea after a slight delay
+        setTimeout(function() {
+          noteTextarea.focus();
+          // Place cursor at end
+          noteTextarea.setSelectionRange(noteTextarea.value.length, noteTextarea.value.length);
+        }, 400);
       }
 
-      // --- Handle option click ---
-      function handleOptionClick(e) {
-        const btn = e.target.closest('.popover-option');
-        if (!btn) return;
+      function saveNote() {
+        if (!activeNoteEventId) return;
+        const ev = events.find(function(item) { return item.id === activeNoteEventId; });
+        if (!ev) return;
 
-        const value = btn.getAttribute('data-reminder-value');
-        const parsedValue = value === 'null' ? null : value;
-
-        if (activeEventId) {
-          const ev = events.find(function(item) { return item.id === activeEventId; });
-          if (ev) {
-            ev.reminder = parsedValue;
-            renderEvents();
-          }
-          closePopover();
-        }
+        const text = noteTextarea.value.trim();
+        ev.note = text;
+        renderEvents();
+        closeNoteSheet();
       }
 
-      // --- Click outside handler ---
-      function handleOutsideClick(e) {
-        if (!popoverEl.classList.contains('active')) return;
+      function deleteNote() {
+        if (!activeNoteEventId) return;
+        const ev = events.find(function(item) { return item.id === activeNoteEventId; });
+        if (!ev) return;
 
-        // If click is inside the popover, ignore
-        if (popoverEl.contains(e.target)) return;
-
-        // If click is on a reminder button, ignore (let the button handle it)
-        if (e.target.closest('.reminder-btn')) return;
-
-        // If click is on the overlay (mobile), close
-        if (e.target === overlayEl) {
-          closePopover();
-          return;
-        }
-
-        // Otherwise, close
-        closePopover();
+        ev.note = '';
+        renderEvents();
+        closeNoteSheet();
       }
 
       // ----- add functions -----
@@ -1650,7 +1727,7 @@
           titleInput.focus(); return; }
         if (!date) { alert('Please select a date');
           dateInput.focus(); return; }
-        events.push({ id: uid(), title, date, time: time || '', reminder: null, owner });
+        events.push({ id: uid(), title, date, time: time || '', reminder: null, owner, note: '' });
         titleInput.value = '';
         dateInput.value = '';
         timeInput.value = '';
@@ -1707,8 +1784,7 @@
             renderEvents();
           } else if (action === 'remind') {
             if (ev) {
-              // Toggle: if already open for this event, close it
-              if (popoverEl.classList.contains('active') && activeEventId === id) {
+              if (popoverEl.classList.contains('active') && activePopoverEventId === id) {
                 closePopover();
               } else {
                 openPopover(id, btn);
@@ -1716,6 +1792,10 @@
             }
           } else if (action === 'calendar') {
             if (ev) { addToCalendar(ev); }
+          } else if (action === 'note') {
+            if (ev) {
+              openNoteSheet(id, btn);
+            }
           }
         });
 
@@ -1741,52 +1821,195 @@
           }
         });
 
-        // --- Option clicks (delegated) ---
-        optionsContainer.addEventListener('click', handleOptionClick);
+        // --- Note sheet close handlers ---
+        noteCloseBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          closeNoteSheet();
+        });
 
-        // --- Close: overlay ---
-        overlayEl.addEventListener('click', function(e) {
-          if (e.target === overlayEl) {
-            closePopover();
+        noteOverlay.addEventListener('click', function(e) {
+          if (e.target === noteOverlay) {
+            closeNoteSheet();
           }
         });
 
-        // --- Close: ✕ button ---
-        closeBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          closePopover();
+        noteSaveBtn.addEventListener('click', saveNote);
+
+        noteDeleteBtn.addEventListener('click', function() {
+          if (confirm('Delete this shared note?')) {
+            deleteNote();
+          }
         });
 
-        // --- Close: header click ---
-        headerClose.addEventListener('click', function(e) {
-          e.stopPropagation();
-          closePopover();
+        // Keyboard shortcuts for note sheet
+        noteTextarea.addEventListener('keydown', function(e) {
+          // Cmd+Enter or Ctrl+Enter to save
+          if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+            e.preventDefault();
+            saveNote();
+          }
+          // Escape to close
+          if (e.key === 'Escape') {
+            closeNoteSheet();
+          }
         });
 
-        // --- Close: Escape key ---
         document.addEventListener('keydown', function(e) {
           if (e.key === 'Escape') {
+            closeNoteSheet();
             closePopover();
           }
         });
-
-        // --- Click outside (global) ---
-        document.addEventListener('click', handleOutsideClick);
 
         // --- Close on resize ---
         window.addEventListener('resize', function() {
+          if (noteSheet.classList.contains('active')) {
+            closeNoteSheet();
+          }
           if (popoverEl.classList.contains('active')) {
             closePopover();
           }
         });
-
-        // --- Close on tab switch ---
-        document.querySelectorAll('.tab-btn').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            closePopover();
-          });
-        });
       }
+
+      // =============================================
+      // REMINDER POPOVER
+      // =============================================
+      let activePopoverEventId = null;
+      const popoverEl = document.getElementById('reminderPopover');
+      const overlayEl = document.getElementById('reminderOverlay');
+      const optionsContainer = document.getElementById('popoverOptions');
+      const closeBtn = document.getElementById('popoverCloseBtn');
+      const headerClose = document.getElementById('popoverHeaderClose');
+
+      const reminderOptions = [
+        { value: null, label: 'Off', icon: 'bell-off' },
+        { value: '15m', label: '15 minutes', icon: 'clock' },
+        { value: '30m', label: '30 minutes', icon: 'clock' },
+        { value: '1h', label: '1 hour', icon: 'clock' },
+        { value: '1d', label: '1 day', icon: 'calendar' },
+        { value: '1w', label: '1 week', icon: 'calendar' }
+      ];
+
+      function closePopover() {
+        popoverEl.classList.remove('active');
+        overlayEl.classList.remove('active');
+        activePopoverEventId = null;
+      }
+
+      function openPopover(eventId, buttonElement) {
+        closePopover();
+
+        const ev = events.find(function(item) { return item.id === eventId; });
+        if (!ev) return;
+
+        activePopoverEventId = eventId;
+
+        let optionsHtml = '';
+        reminderOptions.forEach(function(opt) {
+          const isActive = (ev.reminder === opt.value);
+          let iconName = opt.icon;
+          if (isActive) {
+            iconName = 'check-circle';
+          }
+          optionsHtml +=
+            '<button class="popover-option' + (isActive ? ' active' : '') + '" data-reminder-value="' + (opt.value === null ?
+              'null' : opt.value) + '">';
+          optionsHtml += '  <span class="option-label"><i data-lucide="' + iconName + '" class="lucide"></i> ' + opt.label +
+            '</span>';
+          optionsHtml += '  <span class="check"><i data-lucide="check" class="lucide"></i></span>';
+          optionsHtml += '</button>';
+        });
+        optionsContainer.innerHTML = optionsHtml;
+        lucide.createIcons();
+
+        const isDesktop = window.innerWidth >= 641;
+
+        if (isDesktop) {
+          const rect = buttonElement.getBoundingClientRect();
+          const popoverWidth = 190;
+          let left = rect.left + rect.width / 2 - popoverWidth / 2;
+          let top = rect.bottom + 8;
+
+          if (left < 10) left = 10;
+          if (left + popoverWidth > window.innerWidth - 10) left = window.innerWidth - popoverWidth - 10;
+          if (top + 220 > window.innerHeight) {
+            top = rect.top - 220;
+          }
+
+          popoverEl.style.left = left + 'px';
+          popoverEl.style.top = top + 'px';
+          popoverEl.style.right = 'auto';
+          popoverEl.style.bottom = 'auto';
+
+          popoverEl.style.display = 'block';
+          requestAnimationFrame(function() {
+            popoverEl.classList.add('active');
+          });
+        } else {
+          popoverEl.style.left = '0';
+          popoverEl.style.right = '0';
+          popoverEl.style.top = 'auto';
+          popoverEl.style.bottom = '0';
+          popoverEl.style.display = 'block';
+
+          overlayEl.classList.add('active');
+
+          requestAnimationFrame(function() {
+            popoverEl.classList.add('active');
+          });
+        }
+      }
+
+      // --- Handle option click ---
+      function handleOptionClick(e) {
+        const btn = e.target.closest('.popover-option');
+        if (!btn) return;
+
+        const value = btn.getAttribute('data-reminder-value');
+        const parsedValue = value === 'null' ? null : value;
+
+        if (activePopoverEventId) {
+          const ev = events.find(function(item) { return item.id === activePopoverEventId; });
+          if (ev) {
+            ev.reminder = parsedValue;
+            renderEvents();
+          }
+          closePopover();
+        }
+      }
+
+      // --- Click outside handler ---
+      function handleOutsideClick(e) {
+        if (popoverEl.classList.contains('active')) {
+          if (!popoverEl.contains(e.target) && !e.target.closest('.reminder-btn')) {
+            closePopover();
+          }
+        }
+        // Also close note sheet if clicking outside (only on desktop)
+        if (window.innerWidth >= 641 && noteSheet.classList.contains('active')) {
+          if (!noteSheet.contains(e.target) && !e.target.closest('.note-btn') && e.target !== noteOverlay) {
+            closeNoteSheet();
+          }
+        }
+      }
+
+      // --- Popover listeners ---
+      optionsContainer.addEventListener('click', handleOptionClick);
+      overlayEl.addEventListener('click', function(e) {
+        if (e.target === overlayEl) {
+          closePopover();
+        }
+      });
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closePopover();
+      });
+      headerClose.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closePopover();
+      });
+      document.addEventListener('click', handleOutsideClick);
 
       // ----- tabs -----
       function setupTabs() {
@@ -1801,6 +2024,8 @@
               panels[key].classList.toggle('active', key === panelName);
             });
             lucide.createIcons();
+            closePopover();
+            closeNoteSheet();
           });
         });
       }
