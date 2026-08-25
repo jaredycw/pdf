@@ -33,6 +33,7 @@
       --color-bg-tag: rgba(220, 215, 205, 0.4);
       --color-bg-reminder: #fef3e2;
       --color-bg-input: rgba(255, 255, 255, 0.9);
+      --color-bg-popover: rgba(255, 252, 248, 0.95);
       --color-border-light: rgba(160, 150, 140, 0.15);
       --color-border-card: rgba(160, 150, 140, 0.08);
       --color-border-card-hover: rgba(160, 150, 140, 0.2);
@@ -55,6 +56,7 @@
       --color-owner-b: #d4a0a0;
       --color-owner-both: #b0a89e;
       --color-note: #8b7e72;
+      --color-pinned: #d4a0a0;
 
       --radius-app: 2.8rem;
       --radius-card: 1.6rem;
@@ -125,7 +127,10 @@
     .lucide.lucide-calendar-plus,
     .lucide.lucide-sticky-note,
     .lucide.lucide-save,
-    .lucide.lucide-trash-2 {
+    .lucide.lucide-trash-2,
+    .lucide.lucide-pin,
+    .lucide.lucide-pin-off,
+    .lucide.lucide-more-vertical {
       width: var(--icon-size) !important;
       height: var(--icon-size) !important;
     }
@@ -290,21 +295,23 @@
       gap: var(--spacing-gap);
     }
 
+    /* ================================================
+       EVENT ITEM — REDESIGNED 2026 MINIMALIST
+    ================================================ */
     .event-item,
     .bucket-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: var(--color-bg-card);
-      padding: var(--spacing-card);
+      padding: clamp(0.8rem, 2vw, 1.2rem) clamp(1rem, 2.5vw, 1.6rem);
       border-radius: var(--radius-card);
       border: 1px solid var(--color-border-card);
       backdrop-filter: blur(4px);
       box-shadow: 0 2px 12px rgba(40, 35, 30, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.5);
       transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      gap: 0.5rem;
+      gap: 0.75rem;
       position: relative;
-      overflow: hidden;
     }
     .event-item::before,
     .bucket-item::before {
@@ -332,42 +339,131 @@
       transition-duration: 0.08s;
     }
 
+    .event-item.pinned {
+      border-color: var(--color-pinned);
+      background: rgba(212, 160, 160, 0.04);
+      box-shadow: 0 4px 20px rgba(212, 160, 160, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+    .event-item.pinned::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--color-pinned), rgba(212, 160, 160, 0.1));
+      opacity: 0.5;
+    }
+
     .event-info {
       display: flex;
       flex-direction: column;
-      gap: 0.2rem;
+      gap: 0.3rem;
       flex: 1;
       min-width: 0;
     }
+
     .event-title {
-      font-weight: 510;
-      font-size: var(--text-medium);
+      font-weight: 540;
+      font-size: clamp(1.05rem, 2.8vw, 1.3rem);
       display: flex;
       align-items: center;
       flex-wrap: wrap;
-      gap: 0.3rem;
+      gap: 0.4rem;
       color: var(--color-text-primary);
       word-break: break-word;
       line-height: 1.3;
+      letter-spacing: -0.01em;
     }
     .event-title .lucide {
       width: var(--icon-size) !important;
       height: var(--icon-size) !important;
       color: var(--color-text-muted);
       flex-shrink: 0;
-      opacity: 0.7;
+      opacity: 0.5;
     }
+
+    .badge-pinned {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+      font-size: var(--text-extra-small);
+      font-weight: 500;
+      color: var(--color-pinned);
+      background: rgba(212, 160, 160, 0.1);
+      padding: 0.04rem 0.5rem;
+      border-radius: var(--radius-badge);
+      border: 1px solid rgba(212, 160, 160, 0.1);
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
+    .badge-pinned .lucide {
+      width: 0.6rem !important;
+      height: 0.6rem !important;
+    }
+
+    .note-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.15rem;
+      font-size: var(--text-extra-small);
+      color: var(--color-note);
+      background: rgba(139, 126, 114, 0.08);
+      padding: 0.04rem 0.4rem;
+      border-radius: var(--radius-badge);
+      border: 1px solid rgba(139, 126, 114, 0.08);
+      flex-shrink: 0;
+    }
+    .note-indicator .lucide {
+      width: 0.6rem !important;
+      height: 0.6rem !important;
+    }
+
+    .owner-badge {
+      font-size: var(--text-extra-small);
+      font-weight: 600;
+      padding: 0.05rem 0.6rem;
+      border-radius: var(--radius-badge);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--color-bg-tag);
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+      min-height: 20px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      transition: all 0.2s ease;
+      line-height: 1;
+    }
+    .owner-badge.owner-a {
+      background: rgba(122, 143, 166, 0.12);
+      color: var(--color-owner-a);
+      border-color: rgba(122, 143, 166, 0.12);
+    }
+    .owner-badge.owner-b {
+      background: rgba(212, 160, 160, 0.15);
+      color: var(--color-owner-b);
+      border-color: rgba(212, 160, 160, 0.15);
+    }
+    .owner-badge.owner-both {
+      background: rgba(176, 168, 158, 0.12);
+      color: var(--color-owner-both);
+      border-color: rgba(176, 168, 158, 0.12);
+    }
+
     .event-meta {
       font-size: var(--text-tiny);
       color: var(--color-text-muted);
       display: flex;
-      gap: 0.4rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
       align-items: center;
     }
     .event-meta span {
       background: var(--color-bg-tag);
-      padding: 0.08rem 0.5rem;
+      padding: 0.05rem 0.5rem;
       border-radius: var(--radius-badge);
       display: flex;
       align-items: center;
@@ -384,26 +480,33 @@
       opacity: 0.6;
     }
 
-    .note-indicator {
-      display: inline-flex;
+    .reminder-badge {
+      font-size: var(--text-extra-small);
+      background: var(--color-bg-reminder);
+      padding: 0.04rem 0.5rem;
+      border-radius: var(--radius-badge);
+      color: #a67c5a;
+      display: flex;
       align-items: center;
       gap: 0.2rem;
-      font-size: var(--text-extra-small);
-      color: var(--color-note);
-      background: rgba(139, 126, 114, 0.1);
-      padding: 0.05rem 0.4rem;
-      border-radius: var(--radius-badge);
-      border: 1px solid rgba(139, 126, 114, 0.1);
+      font-weight: 500;
+      border: 1px solid rgba(166, 124, 90, 0.08);
+      white-space: nowrap;
     }
-    .note-indicator .lucide {
-      width: 0.6rem !important;
-      height: 0.6rem !important;
+    .reminder-badge .lucide {
+      width: 0.65rem !important;
+      height: 0.65rem !important;
+      fill: #a67c5a;
+      stroke: #a67c5a;
     }
 
-    .event-actions,
-    .bucket-actions {
+    /* ================================================
+       EVENT ACTIONS · single overflow trigger
+    ================================================ */
+    .event-actions {
+      position: relative;
       display: flex;
-      gap: 0.1rem;
+      align-items: center;
       flex-shrink: 0;
     }
 
@@ -429,77 +532,188 @@
       transition: transform 0.2s ease;
     }
     .btn-icon:hover {
-      background: rgba(60, 50, 40, 0.06);
+      background: rgba(60, 50, 40, 0.05);
       color: var(--color-text-primary);
     }
     .btn-icon:hover .lucide {
-      transform: scale(1.1);
+      transform: scale(1.08);
     }
     .btn-icon:active {
       transform: scale(0.88);
     }
+    .btn-icon.kebab-trigger.is-open {
+      background: rgba(60, 50, 40, 0.07);
+      color: var(--color-text-primary);
+    }
+    /* shared with the bucket list's delete button */
     .btn-icon.danger:hover {
       background: var(--color-danger-bg);
       color: var(--color-danger-text);
     }
-    .btn-icon.calendar-btn:hover {
-      background: rgba(122, 143, 166, 0.12);
-      color: var(--color-calendar);
+
+    /* ================================================
+       OVERFLOW MENU · desktop popover / mobile sheet
+       Note, Calendar, Reminder, Pin and Delete all live
+       here on every breakpoint — the row only ever shows
+       the single kebab trigger above.
+
+       This is a SINGLE shared element (#kebabMenu), built
+       and positioned by JS when opened — not one per event
+       item. It used to be nested inside .event-item, which
+       has both overflow:hidden and backdrop-filter; the
+       latter creates a new containing block for fixed/
+       absolute descendants, so position:fixed silently
+       stopped resolving against the viewport and the whole
+       menu got trapped inside a card-sized box. Portaling it
+       out (same pattern as the reminder popover and note
+       sheet below) avoids that at the source.
+    ================================================ */
+    .kebab-menu {
+      position: fixed;
+      z-index: 1000;
+      background: var(--color-bg-popover);
+      backdrop-filter: saturate(180%) blur(28px);
+      -webkit-backdrop-filter: saturate(180%) blur(28px);
+      border-radius: var(--radius-app) var(--radius-app) 0 0;
+      box-shadow: 0 -8px 44px rgba(30, 26, 22, 0.12), 0 -3px 12px rgba(30, 26, 22, 0.04);
+      border-top: 1px solid var(--color-border-light);
+      padding: 0.5rem 0 max(1rem, env(safe-area-inset-bottom)) 0;
+      min-width: 200px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      max-height: 70vh;
+      overflow-y: auto;
+      display: none;
+      pointer-events: none;
     }
-    .btn-icon.note-btn:hover {
-      background: rgba(139, 126, 114, 0.12);
-      color: var(--color-note);
-    }
-    .btn-icon.note-btn.has-note {
-      color: var(--color-note);
+    .kebab-menu.open {
+      display: block;
+      transform: translateY(0);
+      pointer-events: all;
     }
 
-    .reminder-label {
-      font-size: var(--text-extra-small);
-      font-weight: 500;
-      margin-left: 0.1rem;
-      color: var(--color-text-muted);
-      background: var(--color-bg-tag);
-      padding: 0.05rem 0.4rem;
-      border-radius: var(--radius-badge);
-      line-height: 1.2;
-    }
-    .btn-icon:hover .reminder-label {
-      color: var(--color-text-primary);
+    .kebab-menu .kebab-handle {
+      width: 36px;
+      height: 4px;
+      border-radius: 4px;
+      background: var(--color-text-soft);
+      margin: 0 auto 0.6rem auto;
+      opacity: 0.3;
     }
 
-    .owner-badge {
-      font-size: var(--text-extra-small);
-      font-weight: 600;
-      padding: 0.05rem 0.6rem;
-      border-radius: var(--radius-badge);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      background: var(--color-bg-tag);
-      color: var(--color-text-muted);
-      flex-shrink: 0;
-      min-height: 20px;
-      display: inline-flex;
+    .kebab-menu .kebab-item {
+      display: flex;
       align-items: center;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(4px);
-      transition: all 0.2s ease;
-      line-height: 1;
+      gap: 0.65rem;
+      width: 100%;
+      padding: 0.6rem 1.1rem;
+      background: transparent;
+      border: none;
+      font-size: var(--text-medium-small);
+      font-family: var(--font-stack);
+      font-weight: 470;
+      color: var(--color-text-primary);
+      cursor: pointer;
+      transition: background 0.12s ease, color 0.12s ease;
+      min-height: 46px;
+      text-align: left;
     }
-    .owner-badge.owner-a {
-      background: rgba(122, 143, 166, 0.15);
-      color: var(--color-owner-a);
-      border-color: rgba(122, 143, 166, 0.15);
+    .kebab-menu .kebab-item:hover {
+      background: var(--color-bg-subtle);
     }
-    .owner-badge.owner-b {
-      background: rgba(212, 160, 160, 0.18);
-      color: var(--color-owner-b);
-      border-color: rgba(212, 160, 160, 0.15);
+    .kebab-menu .kebab-item:focus-visible {
+      outline: 2px solid var(--color-border-input-focus);
+      outline-offset: -2px;
+      background: var(--color-bg-subtle);
     }
-    .owner-badge.owner-both {
-      background: rgba(176, 168, 158, 0.15);
-      color: var(--color-owner-both);
-      border-color: rgba(176, 168, 158, 0.12);
+    .kebab-menu .kebab-item:active {
+      transform: scale(0.98);
+      transition-duration: 0.05s;
+    }
+    .kebab-menu .kebab-item .lucide {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+      opacity: 0.55;
+      flex-shrink: 0;
+      stroke-width: 1.8;
+    }
+    .kebab-menu .kebab-item .item-label {
+      flex: 1;
+      text-align: left;
+    }
+    .kebab-menu .kebab-item .item-meta {
+      font-size: var(--text-small);
+      color: var(--color-text-soft);
+      font-weight: 450;
+      flex-shrink: 0;
+    }
+    /* state: item reflects something already set (note written,
+       reminder scheduled, event pinned) with a quiet accent tint */
+    .kebab-menu .kebab-item.is-active {
+      color: var(--color-note);
+    }
+    .kebab-menu .kebab-item.is-active .lucide {
+      opacity: 1;
+    }
+    .kebab-menu .kebab-item[data-action="pin"].is-active {
+      color: var(--color-pinned);
+    }
+    .kebab-menu .kebab-item[data-action="remind"].is-active {
+      color: #a67c5a;
+    }
+    .kebab-menu .kebab-item.danger-item {
+      color: var(--color-danger-text);
+    }
+    .kebab-menu .kebab-item.danger-item .lucide {
+      opacity: 0.75;
+    }
+    .kebab-menu .kebab-item.danger-item:hover,
+    .kebab-menu .kebab-item.danger-item:focus-visible {
+      background: var(--color-danger-bg);
+    }
+    .kebab-menu .kebab-divider {
+      height: 1px;
+      background: var(--color-border-light);
+      margin: 0.3rem 0.9rem;
+    }
+
+    .kebab-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: none;
+    }
+    .kebab-overlay.active {
+      display: block;
+    }
+
+    .bucket-actions {
+      display: flex;
+      gap: 0.1rem;
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    .bucket-item .event-title .lucide {
+      color: var(--color-text-soft);
+      transition: all 0.3s ease;
+    }
+    .bucket-item.done {
+      opacity: 0.75;
+      text-decoration: line-through 1.5px var(--color-text-soft);
+    }
+    .bucket-item.done .event-title .lucide {
+      color: var(--color-done);
+      opacity: 1;
+    }
+    .bucket-item.done .event-title {
+      color: var(--color-text-muted);
+    }
+    .bucket-item.done .owner-badge {
+      opacity: 0.5;
     }
 
     .add-form {
@@ -613,26 +827,6 @@
       height: 0.7rem !important;
     }
 
-    .reminder-badge {
-      font-size: var(--text-extra-small);
-      background: var(--color-bg-reminder);
-      padding: 0.05rem 0.6rem;
-      border-radius: var(--radius-badge);
-      color: #a67c5a;
-      display: flex;
-      align-items: center;
-      gap: 0.2rem;
-      font-weight: 500;
-      border: 1px solid rgba(166, 124, 90, 0.1);
-      white-space: nowrap;
-    }
-    .reminder-badge .lucide {
-      width: 0.65rem !important;
-      height: 0.65rem !important;
-      fill: #a67c5a;
-      stroke: #a67c5a;
-    }
-
     .empty-state {
       font-size: var(--text-medium);
       color: var(--color-text-soft);
@@ -656,25 +850,6 @@
     .empty-state .empty-label {
       font-weight: 400;
       letter-spacing: 0.02em;
-    }
-
-    .bucket-item .event-title .lucide {
-      color: var(--color-text-soft);
-      transition: all 0.3s ease;
-    }
-    .bucket-item.done {
-      opacity: 0.75;
-      text-decoration: line-through 1.5px var(--color-text-soft);
-    }
-    .bucket-item.done .event-title .lucide {
-      color: var(--color-done);
-      opacity: 1;
-    }
-    .bucket-item.done .event-title {
-      color: var(--color-text-muted);
-    }
-    .bucket-item.done .owner-badge {
-      opacity: 0.5;
     }
 
     .app-divider {
@@ -703,8 +878,377 @@
     }
 
     /* ================================================
-       REMINDER POPOVER
+       MOBILE OPTIMIZED
     ================================================ */
+    @media (max-width: 640px) {
+      :root {
+        --spacing-app: 1rem 1rem;
+        --spacing-card: 0.6rem 0.8rem;
+        --spacing-form: 0.7rem 0.8rem;
+        --radius-app: 1.8rem;
+        --icon-size: 1.05rem;
+        --touch-min: 44px;
+      }
+
+      .app-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+      }
+      .header-badge {
+        font-size: var(--text-extra-small);
+        padding: 0.15rem 0.7rem;
+      }
+
+      .tabs {
+        gap: 0.3rem;
+        padding: 0.2rem;
+        border-radius: var(--radius-form);
+      }
+      .tab-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: var(--text-small);
+        flex: 1;
+        justify-content: center;
+        min-height: 40px;
+      }
+      .tab-btn span {
+        display: none;
+      }
+      .tab-btn .lucide {
+        width: var(--icon-size) !important;
+        height: var(--icon-size) !important;
+      }
+
+      .add-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        border-radius: var(--radius-form);
+        padding: var(--spacing-form);
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+      }
+      .add-form input,
+      .add-form select,
+      .add-form button {
+        flex: 1 1 auto;
+        width: 100% !important;
+        min-height: var(--touch-min);
+        max-width: 100% !important;
+        box-sizing: border-box;
+        min-width: 0;
+      }
+      .add-form select {
+        flex: 1 1 auto;
+        background-position: right 0.8rem center;
+        padding-right: 2.4rem;
+        width: 100% !important;
+        min-width: 0;
+      }
+      .add-form input {
+        width: 100% !important;
+        min-width: 0;
+      }
+      .add-form button {
+        justify-content: center;
+        padding: 0.7rem;
+        width: 100% !important;
+        min-width: 0;
+      }
+
+      .add-form input[type="date"],
+      .add-form input[type="time"] {
+        width: 100% !important;
+        min-width: 0;
+        max-width: 100% !important;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      .add-form select {
+        width: 100% !important;
+        min-width: 0;
+        max-width: 100% !important;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      /* --- MOBILE EVENT ITEM --- */
+      .event-item,
+      .bucket-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem 0.6rem;
+        padding: clamp(0.6rem, 1.8vw, 0.9rem) clamp(0.8rem, 2vw, 1rem);
+        align-items: start;
+        border-radius: var(--radius-card);
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .event-item .event-info {
+        grid-column: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .event-title {
+        font-size: clamp(1.1rem, 3.5vw, 1.4rem) !important;
+        gap: 0.3rem;
+        line-height: 1.4;
+        letter-spacing: -0.02em;
+        align-items: flex-start;
+      }
+      .event-title .lucide {
+        width: var(--icon-size) !important;
+        height: var(--icon-size) !important;
+        margin-top: 0.05rem;
+      }
+      .event-title .owner-badge {
+        font-size: var(--text-extra-small);
+        padding: 0.04rem 0.4rem;
+        min-height: 16px;
+        margin-top: 0.05rem;
+      }
+      .event-title .badge-pinned,
+      .event-title .note-indicator {
+        font-size: var(--text-extra-small);
+        padding: 0.04rem 0.4rem;
+        align-self: flex-start;
+        margin-top: 0.05rem;
+      }
+
+      .event-meta {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        align-items: center;
+        margin-top: 0.05rem;
+      }
+      .event-meta span {
+        font-size: var(--text-extra-small);
+        padding: 0.04rem 0.4rem;
+        white-space: nowrap;
+      }
+
+      .event-actions {
+        grid-column: 2;
+        display: flex;
+        flex-direction: row;
+        gap: 0.1rem;
+        align-items: center;
+        justify-content: flex-end;
+        margin-left: 0;
+        flex-shrink: 0;
+        flex-wrap: nowrap;
+        padding-top: 0.05rem;
+        position: relative;
+      }
+
+      .event-actions .btn-icon {
+        min-height: 38px;
+        min-width: 36px;
+        padding: 0.1rem 0.15rem;
+      }
+      .event-actions .btn-icon .lucide {
+        width: calc(var(--icon-size) * 0.95) !important;
+        height: calc(var(--icon-size) * 0.95) !important;
+      }
+
+      .event-item.pinned {
+        border-left: 3px solid var(--color-pinned);
+        padding-left: calc(clamp(0.8rem, 2vw, 1rem) - 3px);
+      }
+      .event-item.pinned::after {
+        height: 2px;
+      }
+
+      .subhead {
+        font-size: var(--text-small);
+        gap: 0.3rem;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .subhead span {
+        padding: 0.15rem 0.6rem;
+        font-size: var(--text-extra-small);
+      }
+      .subhead span .lucide {
+        width: var(--icon-size-tiny) !important;
+        height: var(--icon-size-tiny) !important;
+      }
+
+      .empty-state {
+        font-size: var(--text-medium-small);
+        padding: 1.2rem 0.5rem;
+      }
+      .empty-state .lucide {
+        width: 1.8rem !important;
+        height: 1.8rem !important;
+      }
+
+      .reminder-popover {
+        padding: 0.6rem 0 0.8rem 0;
+      }
+      .reminder-popover .popover-header {
+        padding: 0 1rem 0.4rem 1rem;
+        font-size: var(--text-extra-small);
+      }
+      .reminder-popover .popover-options {
+        padding: 0.2rem 0.4rem;
+      }
+      .reminder-popover .popover-option {
+        padding: 0.5rem 0.7rem;
+        min-height: 44px;
+        font-size: var(--text-medium-small);
+        border-radius: var(--radius-btn);
+      }
+      .reminder-popover .popover-header .close-btn {
+        min-height: 40px;
+        min-width: 40px;
+      }
+
+      .note-sheet {
+        padding: 0.6rem 0 0.8rem 0;
+      }
+      .note-sheet .note-header {
+        padding: 0 1rem 0.4rem 1rem;
+        font-size: var(--text-extra-small);
+      }
+      .note-sheet .note-body {
+        padding: 0.4rem 1rem 0.8rem 1rem;
+      }
+      .note-sheet .note-body textarea {
+        min-height: 120px;
+        font-size: var(--text-medium-small);
+      }
+      .note-sheet .note-header .close-btn {
+        min-height: 40px;
+        min-width: 40px;
+      }
+      .note-sheet .note-body .note-actions button {
+        min-height: 40px;
+        padding: 0.4rem 1rem;
+        font-size: var(--text-medium-small);
+      }
+    }
+
+    @media (min-width: 641px) {
+      /* Desktop popover — position (left/top) is set inline by
+         toggleKebab() from the trigger's getBoundingClientRect(),
+         same approach as openPopover()/openNoteSheet() below. */
+      .kebab-menu {
+        position: fixed;
+        border-radius: 1rem;
+        padding: 0.3rem;
+        min-width: 202px;
+        width: auto;
+        max-width: 230px;
+        max-height: 80vh;
+        box-shadow: 0 16px 44px rgba(30, 26, 22, 0.12), 0 3px 10px rgba(30, 26, 22, 0.05);
+        border: 1px solid var(--color-border-light);
+        border-top: 1px solid var(--color-border-light);
+        left: auto;
+        right: auto;
+        bottom: auto;
+        top: auto;
+        transform: scale(0.96);
+        transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        display: block;
+      }
+      .kebab-menu.open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: all;
+        transform: scale(1);
+        display: block;
+      }
+      .kebab-menu .kebab-handle {
+        display: none;
+      }
+      .kebab-menu .kebab-item {
+        padding: 0.42rem 0.6rem;
+        min-height: 36px;
+        font-size: var(--text-small);
+      }
+      .kebab-overlay {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 380px) {
+      :root {
+        --spacing-app: 0.6rem 0.6rem;
+        --spacing-card: 0.4rem 0.5rem;
+        --spacing-form: 0.5rem 0.5rem;
+        --radius-app: 1.2rem;
+        --icon-size: 0.9rem;
+      }
+      .event-meta span {
+        font-size: 0.5rem;
+        padding: 0.03rem 0.3rem;
+      }
+      .owner-badge {
+        font-size: 0.5rem;
+        padding: 0.03rem 0.3rem;
+        min-height: 14px;
+      }
+      .event-title {
+        font-size: clamp(1rem, 3vw, 1.2rem) !important;
+      }
+      .event-actions .btn-icon {
+        min-height: 32px;
+        min-width: 30px;
+      }
+      .event-item,
+      .bucket-item {
+        gap: 0.3rem 0.4rem;
+        padding: 0.3rem 0.4rem;
+      }
+      .note-sheet .note-body textarea {
+        min-height: 90px;
+      }
+      .reminder-popover .popover-option {
+        min-height: 38px;
+        padding: 0.3rem 0.5rem;
+        font-size: var(--text-small);
+      }
+      .reminder-popover {
+        padding: 0.4rem 0 0.6rem 0;
+      }
+      .add-form input[type="date"],
+      .add-form input[type="time"] {
+        font-size: var(--text-small) !important;
+      }
+      .event-title .badge-pinned,
+      .event-title .note-indicator {
+        font-size: 0.45rem;
+        padding: 0.02rem 0.25rem;
+      }
+      .event-meta span {
+        padding: 0.03rem 0.25rem;
+      }
+      .kebab-menu .kebab-item {
+        padding: 0.4rem 0.6rem;
+        min-height: 40px;
+        font-size: var(--text-small);
+      }
+    }
+
+    /* ===== REMINDER POPOVER ===== */
     .reminder-overlay {
       position: fixed;
       inset: 0;
@@ -922,9 +1466,7 @@
       }
     }
 
-    /* ================================================
-       NOTE SHEET
-    ================================================ */
+    /* ===== NOTE SHEET ===== */
     .note-overlay {
       position: fixed;
       inset: 0;
@@ -1165,334 +1707,7 @@
       }
     }
 
-    /* ================================================
-       MOBILE RESPONSIVE — FIXED OVERFLOW
-    ================================================ */
-    @media (max-width: 640px) {
-      :root {
-        --spacing-app: 1rem 1rem;
-        --spacing-card: 0.6rem 0.8rem;
-        --spacing-form: 0.7rem 0.8rem;
-        --radius-app: 1.8rem;
-        --icon-size: 1.05rem;
-        --touch-min: 44px;
-      }
-
-      .app-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.3rem;
-      }
-      .header-badge {
-        font-size: var(--text-extra-small);
-        padding: 0.15rem 0.7rem;
-      }
-
-      .tabs {
-        gap: 0.3rem;
-        padding: 0.2rem;
-        border-radius: var(--radius-form);
-      }
-      .tab-btn {
-        padding: 0.4rem 0.6rem;
-        font-size: var(--text-small);
-        flex: 1;
-        justify-content: center;
-        min-height: 40px;
-      }
-      .tab-btn span {
-        display: none;
-      }
-      .tab-btn .lucide {
-        width: var(--icon-size) !important;
-        height: var(--icon-size) !important;
-      }
-
-      /* === FIX: Form inputs full width on mobile === */
-      .add-form {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-        border-radius: var(--radius-form);
-        padding: var(--spacing-form);
-        width: 100%;
-        max-width: 100%;
-        overflow: hidden;
-      }
-      .add-form input,
-      .add-form select,
-      .add-form button {
-        flex: 1 1 auto;
-        width: 100% !important;
-        min-height: var(--touch-min);
-        max-width: 100% !important;
-        box-sizing: border-box;
-        min-width: 0;
-      }
-      .add-form select {
-        flex: 1 1 auto;
-        background-position: right 0.8rem center;
-        padding-right: 2.4rem;
-        width: 100% !important;
-        min-width: 0;
-      }
-      .add-form input {
-        width: 100% !important;
-        min-width: 0;
-      }
-      .add-form button {
-        justify-content: center;
-        padding: 0.7rem;
-        width: 100% !important;
-        min-width: 0;
-      }
-
-      /* Fix date and time inputs on iOS */
-      .add-form input[type="date"],
-      .add-form input[type="time"] {
-        width: 100% !important;
-        min-width: 0;
-        max-width: 100% !important;
-        box-sizing: border-box;
-        -webkit-appearance: none;
-        appearance: none;
-      }
-
-      /* Fix select on iOS */
-      .add-form select {
-        width: 100% !important;
-        min-width: 0;
-        max-width: 100% !important;
-        box-sizing: border-box;
-        -webkit-appearance: none;
-        appearance: none;
-      }
-
-      .event-item,
-      .bucket-item {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 0.4rem 0.6rem;
-        padding: var(--spacing-card);
-        align-items: center;
-        border-radius: var(--radius-card);
-        flex-wrap: nowrap;
-        width: 100%;
-        max-width: 100%;
-        overflow: hidden;
-      }
-      .event-item .event-info,
-      .bucket-item .event-info {
-        grid-column: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        min-width: 0;
-        flex: none;
-        width: 100%;
-        max-width: 100%;
-        overflow: hidden;
-      }
-      .event-item .event-actions,
-      .bucket-item .bucket-actions {
-        grid-column: 2;
-        display: flex;
-        flex-direction: row;
-        gap: 0.05rem;
-        align-items: center;
-        justify-content: flex-end;
-        margin-left: 0;
-        flex-shrink: 0;
-        flex-wrap: nowrap;
-      }
-      .event-item .event-actions .btn-icon,
-      .bucket-item .bucket-actions .btn-icon {
-        min-height: 38px;
-        min-width: 38px;
-        padding: 0.1rem 0.15rem;
-      }
-      .event-item .event-actions .btn-icon .lucide,
-      .bucket-item .bucket-actions .btn-icon .lucide {
-        width: calc(var(--icon-size) * 0.95) !important;
-        height: calc(var(--icon-size) * 0.95) !important;
-      }
-
-      .event-title {
-        font-size: var(--text-medium-large) !important;
-        gap: 0.15rem;
-        flex-wrap: wrap;
-        display: flex;
-        align-items: flex-start;
-        flex-direction: column;
-        width: 100%;
-        max-width: 100%;
-        word-break: break-word;
-      }
-      .event-title .lucide {
-        margin-bottom: 0.05rem;
-        flex-shrink: 0;
-      }
-      .event-title .owner-badge {
-        margin-top: 0.05rem;
-        font-size: var(--text-extra-small);
-        padding: 0.05rem 0.4rem;
-        min-height: 18px;
-        align-self: flex-start;
-        flex-shrink: 0;
-      }
-
-      .event-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-        align-items: flex-start;
-        width: 100%;
-        flex-wrap: nowrap;
-        max-width: 100%;
-        overflow: hidden;
-      }
-      .event-meta span {
-        white-space: nowrap;
-        font-size: var(--text-extra-small);
-        padding: 0.05rem 0.4rem;
-        width: auto;
-        display: inline-flex;
-        max-width: 100%;
-        overflow: hidden;
-      }
-      .event-meta span .lucide {
-        flex-shrink: 0;
-      }
-
-      .bucket-item .event-title {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .bucket-item .event-title .owner-badge {
-        align-self: flex-start;
-        margin-top: 0.05rem;
-      }
-      .bucket-item .event-title .lucide {
-        margin-bottom: 0.05rem;
-      }
-
-      .subhead {
-        font-size: var(--text-small);
-        gap: 0.3rem;
-        padding-bottom: 0.5rem;
-        margin-bottom: 1rem;
-      }
-      .subhead span {
-        padding: 0.15rem 0.6rem;
-        font-size: var(--text-extra-small);
-      }
-      .subhead span .lucide {
-        width: var(--icon-size-tiny) !important;
-        height: var(--icon-size-tiny) !important;
-      }
-
-      .empty-state {
-        font-size: var(--text-medium-small);
-        padding: 1.2rem 0.5rem;
-      }
-      .empty-state .lucide {
-        width: 1.8rem !important;
-        height: 1.8rem !important;
-      }
-
-      .reminder-popover {
-        padding: 0.6rem 0 0.8rem 0;
-      }
-      .reminder-popover .popover-header {
-        padding: 0 1rem 0.4rem 1rem;
-        font-size: var(--text-extra-small);
-      }
-      .reminder-popover .popover-options {
-        padding: 0.2rem 0.4rem;
-      }
-      .reminder-popover .popover-option {
-        padding: 0.5rem 0.7rem;
-        min-height: 44px;
-        font-size: var(--text-medium-small);
-        border-radius: var(--radius-btn);
-      }
-      .reminder-popover .popover-header .close-btn {
-        min-height: 40px;
-        min-width: 40px;
-      }
-
-      .note-sheet {
-        padding: 0.6rem 0 0.8rem 0;
-      }
-      .note-sheet .note-header {
-        padding: 0 1rem 0.4rem 1rem;
-        font-size: var(--text-extra-small);
-      }
-      .note-sheet .note-body {
-        padding: 0.4rem 1rem 0.8rem 1rem;
-      }
-      .note-sheet .note-body textarea {
-        min-height: 120px;
-        font-size: var(--text-medium-small);
-      }
-      .note-sheet .note-header .close-btn {
-        min-height: 40px;
-        min-width: 40px;
-      }
-      .note-sheet .note-body .note-actions button {
-        min-height: 40px;
-        padding: 0.4rem 1rem;
-        font-size: var(--text-medium-small);
-      }
-    }
-
-    @media (max-width: 380px) {
-      :root {
-        --spacing-app: 0.6rem 0.6rem;
-        --spacing-card: 0.4rem 0.5rem;
-        --spacing-form: 0.5rem 0.5rem;
-        --radius-app: 1.2rem;
-        --icon-size: 0.9rem;
-      }
-      .event-meta span {
-        font-size: 0.5rem;
-        padding: 0.04rem 0.3rem;
-      }
-      .owner-badge {
-        font-size: 0.5rem;
-        padding: 0.04rem 0.3rem;
-        min-height: 14px;
-      }
-      .event-title {
-        font-size: var(--text-medium) !important;
-      }
-      .event-item .event-actions .btn-icon,
-      .bucket-item .bucket-actions .btn-icon {
-        min-height: 32px;
-        min-width: 32px;
-      }
-      .event-item,
-      .bucket-item {
-        gap: 0.2rem 0.4rem;
-        padding: 0.3rem 0.4rem;
-      }
-      .note-sheet .note-body textarea {
-        min-height: 90px;
-      }
-      .reminder-popover .popover-option {
-        min-height: 38px;
-        padding: 0.3rem 0.5rem;
-        font-size: var(--text-small);
-      }
-      .reminder-popover {
-        padding: 0.4rem 0 0.6rem 0;
-      }
-      .add-form input[type="date"],
-      .add-form input[type="time"] {
-        font-size: var(--text-small) !important;
-      }
-    }
-
+    /* ===== DARK MODE ===== */
     @media (prefers-color-scheme: dark) {
       :root {
         --color-bg-body: #1a1714;
@@ -1502,6 +1717,7 @@
         --color-bg-subtle: rgba(42, 38, 34, 0.5);
         --color-bg-tag: rgba(60, 55, 50, 0.4);
         --color-bg-input: rgba(42, 38, 34, 0.9);
+        --color-bg-popover: rgba(30, 26, 22, 0.92);
         --color-border-light: rgba(160, 150, 140, 0.12);
         --color-border-card: rgba(160, 150, 140, 0.06);
         --color-border-card-hover: rgba(160, 150, 140, 0.18);
@@ -1525,6 +1741,7 @@
         --color-owner-both: #b0a89e;
         --color-calendar: #8aa8c0;
         --color-note: #b0a89e;
+        --color-pinned: #d4a0a0;
       }
       .app {
         border-color: rgba(255, 255, 255, 0.05);
@@ -1571,16 +1788,23 @@
         fill: #c8a88a;
         stroke: #c8a88a;
       }
-      .btn-icon.calendar-btn:hover {
-        background: rgba(138, 168, 192, 0.12);
-        color: var(--color-calendar);
-      }
-      .btn-icon.note-btn:hover {
-        background: rgba(176, 168, 158, 0.12);
+      .kebab-menu .kebab-item.is-active {
         color: var(--color-note);
       }
-      .btn-icon.note-btn.has-note {
-        color: var(--color-note);
+      .kebab-menu .kebab-item[data-action="pin"].is-active {
+        color: var(--color-pinned);
+      }
+      .kebab-menu .kebab-item[data-action="remind"].is-active {
+        color: #c8a88a;
+      }
+      .event-item.pinned {
+        border-color: rgba(212, 160, 160, 0.3);
+        background: rgba(212, 160, 160, 0.05);
+        border-left-color: var(--color-pinned);
+      }
+      .badge-pinned {
+        color: var(--color-pinned);
+        background: rgba(212, 160, 160, 0.12);
       }
       .note-sheet {
         border-top-color: rgba(255, 255, 255, 0.06);
@@ -1622,11 +1846,28 @@
       .reminder-overlay {
         background: rgba(0, 0, 0, 0.4);
       }
+      .kebab-menu {
+        border-color: rgba(160, 150, 140, 0.15);
+      }
+      .kebab-menu .kebab-item:hover,
+      .kebab-menu .kebab-item:focus-visible {
+        background: rgba(160, 150, 140, 0.08);
+      }
+      .kebab-menu .kebab-item.danger-item {
+        color: #e07a6a;
+      }
+      .kebab-menu .kebab-item.danger-item:hover,
+      .kebab-menu .kebab-item.danger-item:focus-visible {
+        background: #3a2824;
+      }
       @media (min-width: 641px) {
         .reminder-popover {
           border: 1px solid rgba(160, 150, 140, 0.15);
         }
         .note-sheet {
+          border: 1px solid rgba(160, 150, 140, 0.15);
+        }
+        .kebab-menu {
           border: 1px solid rgba(160, 150, 140, 0.15);
         }
       }
@@ -1688,12 +1929,8 @@
         </button>
       </form>
       <div class="form-hint">
-        <i data-lucide="bell" class="lucide"></i>
-        Bell for reminder ·
-        <i data-lucide="sticky-note" class="lucide"></i>
-        📝 Note for memories ·
-        <i data-lucide="calendar-plus" class="lucide"></i>
-        Add to calendar
+        <i data-lucide="pin" class="lucide"></i>
+        Pin important events to the top
       </div>
     </div>
 
@@ -1727,6 +1964,10 @@
       <i data-lucide="sparkles" class="lucide"></i>
     </div>
   </div>
+
+  <!-- ===== KEBAB OVERLAY ===== -->
+  <div class="kebab-overlay" id="kebabOverlay"></div>
+  <div class="kebab-menu" id="kebabMenu" role="menu"></div>
 
   <!-- ===== REMINDER POPOVER ===== -->
   <div class="reminder-overlay" id="reminderOverlay"></div>
@@ -1784,18 +2025,36 @@
 
       // ----- DATA -----
       let events = [
-        { id: 'e1', title: 'Movie night', date: '2026-08-25', time: '18:30', reminder: '30m', owner: 'both',
-          note: 'We watched Dune 2! 🎬 Amazing visuals, she fell asleep halfway 😴' },
-        { id: 'e2', title: 'Dinner reservation', date: '2026-08-27', time: '20:00', reminder: null, owner: 'a', note: '' },
+        { id: 'e1', title: 'Movie night 🎬', date: '2026-08-25', time: '18:30', reminder: '30m', owner: 'both',
+          note: 'We watched Dune 2! Amazing visuals, she fell asleep halfway 😴', pinned: true },
+        { id: 'e2', title: 'Dinner reservation 🍽️', date: '2026-08-27', time: '20:00', reminder: null, owner: 'a',
+          note: '', pinned: false },
+        { id: 'e3', title: 'Weekend getaway 🏖️', date: '2026-09-05', time: '08:00', reminder: '1d', owner: 'both',
+          note: '', pinned: false },
       ];
 
       let bucketItems = [
         { id: 'b1', title: 'Hike Patagonia', done: false, owner: 'b' },
         { id: 'b2', title: 'Sushi omakase', done: true, owner: 'both' },
+        { id: 'b3', title: 'Visit Kyoto', done: false, owner: 'a' },
       ];
 
       function uid() {
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      }
+
+      // lucide is loaded from an external CDN. If it's blocked, slow, or
+      // fails for any reason, calling lucide.createIcons() directly would
+      // throw and silently abort init() before setupEventDelegation() runs
+      // — every button (kebab included) would then look dead. Guard it.
+      function safeCreateIcons() {
+        try {
+          if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+          }
+        } catch (err) {
+          console.error('lucide.createIcons failed:', err);
+        }
       }
 
       function getOwnerBadge(owner) {
@@ -1804,43 +2063,42 @@
         return '<span class="owner-badge ' + (classes[owner] || '') + '">' + (labels[owner] || '') + '</span>';
       }
 
-      // ----- ICS / Calendar export -----
+      function sortEvents(eventsArray) {
+        return eventsArray.slice().sort(function(a, b) {
+          if (a.pinned && !b.pinned) return -1;
+          if (!a.pinned && b.pinned) return 1;
+          return new Date(a.date) - new Date(b.date);
+        });
+      }
+
       function addToCalendar(event) {
         if (!event || !event.date) {
           alert('This event has no date set.');
           return;
         }
-
         const title = event.title || 'Untitled Event';
         const dateStr = event.date;
         const timeStr = event.time || '00:00';
         const dateTime = dateStr.replace(/-/g, '') + 'T' + timeStr.replace(/:/g, '') + '00';
-
         const startDate = new Date(dateStr + 'T' + (timeStr || '00:00'));
         const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
         const endDateStr = endDate.toISOString().replace(/[-:]/g, '').slice(0, 15) + '00';
-
         const uid = 'event-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6) + '@couple.app';
-
         let icsLines = [
           'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//couple calendar//EN',
           'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', 'UID:' + uid, 'SUMMARY:' + title,
           'DTSTART:' + dateTime, 'DTEND:' + endDateStr, 'DESCRIPTION:Shared couple event'
         ];
-
         if (event.reminder) {
           let trigger = '-PT15M';
           if (event.reminder === '30m') trigger = '-PT30M';
           else if (event.reminder === '1h') trigger = '-PT1H';
           else if (event.reminder === '1d') trigger = '-P1D';
           else if (event.reminder === '1w') trigger = '-P1W';
-
           icsLines.push('BEGIN:VALARM', 'TRIGGER:' + trigger, 'ACTION:DISPLAY',
             'DESCRIPTION:Reminder for ' + title, 'END:VALARM');
         }
-
         icsLines.push('END:VEVENT', 'END:VCALENDAR');
-
         const icsContent = icsLines.join('\n');
         const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
         const link = document.createElement('a');
@@ -1853,31 +2111,189 @@
       }
 
       // =============================================
+      // KEBAB MENU
+      // =============================================
+      let activeKebabId = null;
+      const kebabMenuEl = document.getElementById('kebabMenu');
+
+      function buildKebabMenuHtml(ev) {
+        const remindIcon = ev.reminder ? 'bell' : 'bell-off';
+        const reminderLabel = ev.reminder ? ev.reminder : '';
+        const hasNote = ev.note && ev.note.trim().length > 0;
+        const isPinned = ev.pinned || false;
+        const pinIcon = isPinned ? 'pin' : 'pin-off';
+        const pinLabel = isPinned ? 'Unpin' : 'Pin';
+
+        let html = '';
+        if (window.innerWidth <= 640) {
+          html += '<div class="kebab-handle"></div>';
+        }
+        html += '<button class="kebab-item' + (hasNote ? ' is-active' : '') + '" data-action="note" data-id="' + ev.id + '" role="menuitem">';
+        html += '  <i data-lucide="sticky-note" class="lucide"></i>';
+        html += '  <span class="item-label">' + (hasNote ? 'Edit Note' : 'Add Note') + '</span>';
+        html += '</button>';
+        html += '<button class="kebab-item" data-action="calendar" data-id="' + ev.id + '" role="menuitem">';
+        html += '  <i data-lucide="calendar-plus" class="lucide"></i>';
+        html += '  <span class="item-label">Add to Calendar</span>';
+        html += '</button>';
+        html += '<button class="kebab-item' + (ev.reminder ? ' is-active' : '') + '" data-action="remind" data-id="' + ev.id + '" role="menuitem">';
+        html += '  <i data-lucide="' + remindIcon + '" class="lucide"></i>';
+        html += '  <span class="item-label">' + (ev.reminder ? 'Reminder' : 'Set Reminder') + '</span>';
+        if (reminderLabel) {
+          html += '  <span class="item-meta">' + reminderLabel + '</span>';
+        }
+        html += '</button>';
+        html += '<button class="kebab-item' + (isPinned ? ' is-active' : '') + '" data-action="pin" data-id="' + ev.id + '" role="menuitem">';
+        html += '  <i data-lucide="' + pinIcon + '" class="lucide"></i>';
+        html += '  <span class="item-label">' + pinLabel + '</span>';
+        html += '</button>';
+        html += '<div class="kebab-divider"></div>';
+        html += '<button class="kebab-item danger-item" data-action="delete" data-id="' + ev.id + '" role="menuitem">';
+        html += '  <i data-lucide="trash-2" class="lucide"></i>';
+        html += '  <span class="item-label">Delete Event</span>';
+        html += '</button>';
+        return html;
+      }
+
+      function closeKebab() {
+        kebabMenuEl.classList.remove('open');
+        document.querySelectorAll('.kebab-trigger.is-open').forEach(function(btn) {
+          btn.classList.remove('is-open');
+          btn.setAttribute('aria-expanded', 'false');
+        });
+        document.getElementById('kebabOverlay').classList.remove('active');
+        activeKebabId = null;
+      }
+
+      // Builds the menu content fresh for this event, then positions it —
+      // fixed + JS-computed left/top on desktop (anchored under the
+      // trigger), full-width bottom sheet on mobile. Same approach as
+      // openPopover()/openNoteSheet() below, and for the same reason: a
+      // single element positioned relative to the viewport, living outside
+      // any card, can't get trapped by a card's overflow or backdrop-filter.
+      function toggleKebab(eventId, buttonElement) {
+        if (activeKebabId === eventId && kebabMenuEl.classList.contains('open')) {
+          closeKebab();
+          return;
+        }
+
+        closeKebab();
+
+        const ev = events.find(function(item) { return item.id === eventId; });
+        if (!ev) return;
+
+        kebabMenuEl.innerHTML = buildKebabMenuHtml(ev);
+        kebabMenuEl.setAttribute('data-kebab-id', eventId);
+        safeCreateIcons();
+
+        activeKebabId = eventId;
+        buttonElement.classList.add('is-open');
+        buttonElement.setAttribute('aria-expanded', 'true');
+
+        const isDesktop = window.innerWidth >= 641;
+
+        if (isDesktop) {
+          const rect = buttonElement.getBoundingClientRect();
+          const menuWidth = 210;
+          const menuMaxHeight = 260;
+          let left = rect.right - menuWidth;
+          let top = rect.bottom + 8;
+
+          if (left < 10) left = 10;
+          if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+          if (top + menuMaxHeight > window.innerHeight) {
+            top = rect.top - menuMaxHeight;
+          }
+
+          kebabMenuEl.style.left = left + 'px';
+          kebabMenuEl.style.top = top + 'px';
+          kebabMenuEl.style.right = 'auto';
+          kebabMenuEl.style.bottom = 'auto';
+        } else {
+          kebabMenuEl.style.left = '0';
+          kebabMenuEl.style.right = '0';
+          kebabMenuEl.style.top = 'auto';
+          kebabMenuEl.style.bottom = '0';
+          document.getElementById('kebabOverlay').classList.add('active');
+        }
+
+        requestAnimationFrame(function() {
+          kebabMenuEl.classList.add('open');
+        });
+      }
+
+      function setupKebabListeners() {
+        document.getElementById('kebabOverlay').addEventListener('click', closeKebab);
+
+        kebabMenuEl.addEventListener('click', function(e) {
+          const btn = e.target.closest('button[data-action]');
+          if (!btn) return;
+          const action = btn.getAttribute('data-action');
+          const id = btn.getAttribute('data-id');
+          if (!id) return;
+          closeKebab();
+          handleEventAction(action, id, btn);
+        });
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            closeKebab();
+          }
+        });
+
+        window.addEventListener('resize', function() {
+          if (activeKebabId) {
+            closeKebab();
+          }
+        });
+
+        document.addEventListener('click', function(e) {
+          if (activeKebabId) {
+            if (!e.target.closest('.kebab-menu') && !e.target.closest('.kebab-trigger')) {
+              closeKebab();
+            }
+          }
+        });
+      }
+
+      // =============================================
       // RENDER FUNCTIONS
       // =============================================
       function renderEvents() {
         const container = document.getElementById('eventList');
         if (!container) return;
-        if (events.length === 0) {
+
+        const sortedEvents = sortEvents(events);
+
+        if (sortedEvents.length === 0) {
           container.innerHTML =
             '<div class="empty-state"><i data-lucide="calendar-plus" class="lucide"></i><span class="empty-label">No events yet — add one</span></div>';
-          lucide.createIcons();
+          safeCreateIcons();
           return;
         }
+
         let html = '';
-        for (let i = 0; i < events.length; i++) {
-          const ev = events[i];
+        for (let i = 0; i < sortedEvents.length; i++) {
+          const ev = sortedEvents[i];
           const remindIcon = ev.reminder ? 'bell' : 'bell-off';
           const ownerBadge = getOwnerBadge(ev.owner || 'both');
           const reminderLabel = ev.reminder ? ev.reminder : '';
           const hasNote = ev.note && ev.note.trim().length > 0;
+          const isPinned = ev.pinned || false;
 
-          html += '<li class="event-item" data-id="' + ev.id + '">';
+          const pinnedClass = isPinned ? 'pinned' : '';
+          const pinIcon = isPinned ? 'pin' : 'pin-off';
+          const pinLabel = isPinned ? 'Unpin' : 'Pin';
+
+          html += '<li class="event-item ' + pinnedClass + '" data-id="' + ev.id + '">';
           html += '  <div class="event-info">';
-          html += '    <span class="event-title"><i data-lucide="calendar-check" class="lucide"></i> ' + ev.title + ' ' +
-            ownerBadge;
+          html += '    <span class="event-title">';
+          html += '      <i data-lucide="calendar-check" class="lucide"></i> ' + ev.title + ' ' + ownerBadge;
+          if (isPinned) {
+            html += '      <span class="badge-pinned"><i data-lucide="pin" class="lucide"></i> pinned</span>';
+          }
           if (hasNote) {
-            html += '      <span class="note-indicator"><i data-lucide="sticky-note" class="lucide"></i> note</span>';
+            html += '      <span class="note-indicator"><i data-lucide="sticky-note" class="lucide"></i></span>';
           }
           html += '    </span>';
           html += '    <div class="event-meta">';
@@ -1892,24 +2308,22 @@
           html += '    </div>';
           html += '  </div>';
           html += '  <div class="event-actions">';
+
+          // Single overflow trigger. The menu itself is NOT rendered here —
+          // it lives in a single shared #kebabMenu element outside the card
+          // (see openKebabMenu). Nesting it inside .event-item used to trap
+          // it behind overflow:hidden AND behind the card's backdrop-filter,
+          // which creates its own containing block for fixed/absolute
+          // descendants and silently mis-positions them. Portaling it out,
+          // the same way the reminder popover and note sheet already work,
+          // avoids both problems at the source instead of patching around them.
           html +=
-            '    <button class="btn-icon note-btn' + (hasNote ? ' has-note' : '') + '" data-action="note" data-id="' + ev.id + '" title="Add shared note"><i data-lucide="sticky-note" class="lucide"></i></button>';
-          html +=
-            '    <button class="btn-icon calendar-btn" data-action="calendar" data-id="' + ev.id + '" title="Add to phone calendar"><i data-lucide="calendar-plus" class="lucide"></i></button>';
-          html +=
-            '    <button class="btn-icon reminder-btn" data-action="remind" data-id="' + ev.id + '" title="Set reminder">';
-          html += '      <i data-lucide="' + remindIcon + '" class="lucide"></i>';
-          if (reminderLabel) {
-            html += '      <span class="reminder-label">' + reminderLabel + '</span>';
-          }
-          html += '    </button>';
-          html +=
-            '    <button class="btn-icon danger" data-action="delete" data-id="' + ev.id + '" title="delete"><i data-lucide="x" class="lucide"></i></button>';
+            '    <button class="btn-icon kebab-trigger" data-action="kebab" data-id="' + ev.id + '" title="Actions" aria-haspopup="menu" aria-expanded="false"><i data-lucide="more-vertical" class="lucide"></i></button>';
           html += '  </div>';
           html += '</li>';
         }
         container.innerHTML = html;
-        lucide.createIcons();
+        safeCreateIcons();
       }
 
       function renderBucket() {
@@ -1918,7 +2332,7 @@
         if (bucketItems.length === 0) {
           container.innerHTML =
             '<div class="empty-state"><i data-lucide="backpack" class="lucide"></i><span class="empty-label">Bucket list is empty — add a dream</span></div>';
-          lucide.createIcons();
+          safeCreateIcons();
           return;
         }
         let html = '';
@@ -1939,7 +2353,7 @@
           html += '</li>';
         }
         container.innerHTML = html;
-        lucide.createIcons();
+        safeCreateIcons();
       }
 
       // =============================================
@@ -1991,7 +2405,7 @@
           optionsHtml += '</button>';
         });
         optionsContainer.innerHTML = optionsHtml;
-        lucide.createIcons();
+        safeCreateIcons();
 
         const isDesktop = window.innerWidth >= 641;
 
@@ -2031,7 +2445,6 @@
         }
       }
 
-      // ----- Popover option click handler -----
       function handlePopoverOptionClick(e) {
         const btn = e.target.closest('.popover-option');
         if (!btn) return;
@@ -2051,20 +2464,17 @@
 
       optionsContainer.addEventListener('click', handlePopoverOptionClick);
 
-      // ----- Close popover: overlay -----
       overlayEl.addEventListener('click', function(e) {
         if (e.target === overlayEl) {
           closePopover();
         }
       });
 
-      // ----- Close popover: close button -----
       popoverCloseBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         closePopover();
       });
 
-      // ----- Close popover: header click -----
       popoverHeaderClose.addEventListener('click', function(e) {
         e.stopPropagation();
         closePopover();
@@ -2162,7 +2572,6 @@
         }
       }
 
-      // ----- Note sheet listeners -----
       noteCloseBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         closeNoteSheet();
@@ -2175,7 +2584,6 @@
       });
 
       noteSaveBtn.addEventListener('click', saveNote);
-
       noteDeleteBtn.addEventListener('click', deleteNote);
 
       noteTextarea.addEventListener('keydown', function(e) {
@@ -2215,7 +2623,8 @@
           time: time || '',
           reminder: null,
           owner: owner,
-          note: ''
+          note: '',
+          pinned: false
         });
 
         titleInput.value = '';
@@ -2253,35 +2662,48 @@
       // =============================================
       // EVENT DELEGATION
       // =============================================
+      function handleEventAction(action, id, btn) {
+        const ev = events.find(function(item) { return item.id === id; });
+        if (!ev) return;
+
+        if (action === 'delete') {
+          if (confirm('Delete this event?')) {
+            events = events.filter(function(item) { return item.id !== id; });
+            renderEvents();
+          }
+        } else if (action === 'remind') {
+          if (popoverEl.classList.contains('active') && activePopoverEventId === id) {
+            closePopover();
+          } else {
+            openPopover(id, btn);
+          }
+        } else if (action === 'calendar') {
+          addToCalendar(ev);
+        } else if (action === 'note') {
+          openNoteSheet(id, btn);
+        } else if (action === 'pin') {
+          ev.pinned = !ev.pinned;
+          renderEvents();
+        }
+      }
+
       function setupEventDelegation() {
-        // Events panel
         document.getElementById('eventList').addEventListener('click', function(e) {
           const btn = e.target.closest('button[data-action]');
           if (!btn) return;
+
           const action = btn.getAttribute('data-action');
           const id = btn.getAttribute('data-id');
           if (!id) return;
 
-          const ev = events.find(function(item) { return item.id === id; });
-          if (!ev) return;
-
-          if (action === 'delete') {
-            events = events.filter(function(item) { return item.id !== id; });
-            renderEvents();
-          } else if (action === 'remind') {
-            if (popoverEl.classList.contains('active') && activePopoverEventId === id) {
-              closePopover();
-            } else {
-              openPopover(id, btn);
-            }
-          } else if (action === 'calendar') {
-            addToCalendar(ev);
-          } else if (action === 'note') {
-            openNoteSheet(id, btn);
+          // Every action now lives inside the shared #kebabMenu — the row
+          // itself only ever renders the trigger button.
+          if (action === 'kebab') {
+            e.stopPropagation();
+            toggleKebab(id, btn);
           }
         });
 
-        // Bucket panel
         document.getElementById('bucketList').addEventListener('click', function(e) {
           const btn = e.target.closest('button[data-action]');
           if (!btn) return;
@@ -2290,8 +2712,10 @@
           if (!id) return;
 
           if (action === 'deleteBucket') {
-            bucketItems = bucketItems.filter(function(item) { return item.id !== id; });
-            renderBucket();
+            if (confirm('Delete this bucket item?')) {
+              bucketItems = bucketItems.filter(function(item) { return item.id !== id; });
+              renderBucket();
+            }
           } else if (action === 'toggleBucket') {
             for (let i = 0; i < bucketItems.length; i++) {
               if (bucketItems[i].id === id) {
@@ -2310,7 +2734,6 @@
       document.getElementById('eventForm').addEventListener('submit', addEvent);
       document.getElementById('bucketForm').addEventListener('submit', addBucket);
 
-      // Enter key on inputs
       document.getElementById('eventTitle').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') { e.preventDefault();
           document.getElementById('eventForm').dispatchEvent(new Event('submit')); }
@@ -2343,9 +2766,10 @@
             Object.keys(panels).forEach(function(key) {
               panels[key].classList.toggle('active', key === panelName);
             });
-            lucide.createIcons();
+            safeCreateIcons();
             closePopover();
             closeNoteSheet();
+            closeKebab();
           });
         });
       }
@@ -2360,7 +2784,7 @@
           day = String(d.getDate()).padStart(2, '0');
         const label = document.getElementById('dateLabel');
         if (label) { label.innerHTML = '<i data-lucide="calendar" class="lucide"></i> ' + y + '-' + m + '-' + day;
-          lucide.createIcons(); }
+          safeCreateIcons(); }
       }
 
       function setDefaultDate() {
@@ -2381,27 +2805,14 @@
         if (e.key === 'Escape') {
           closePopover();
           closeNoteSheet();
-        }
-      });
-
-      document.addEventListener('click', function(e) {
-        // Close popover if clicking outside
-        if (popoverEl.classList.contains('active')) {
-          if (!popoverEl.contains(e.target) && !e.target.closest('.reminder-btn')) {
-            closePopover();
-          }
-        }
-        // Close note sheet if clicking outside (desktop only)
-        if (window.innerWidth >= 641 && noteSheet.classList.contains('active')) {
-          if (!noteSheet.contains(e.target) && !e.target.closest('.note-btn')) {
-            closeNoteSheet();
-          }
+          closeKebab();
         }
       });
 
       window.addEventListener('resize', function() {
         if (popoverEl.classList.contains('active')) closePopover();
         if (noteSheet.classList.contains('active')) closeNoteSheet();
+        if (activeKebabId) closeKebab();
       });
 
       // =============================================
@@ -2414,7 +2825,8 @@
         renderBucket();
         setupTabs();
         setupEventDelegation();
-        lucide.createIcons();
+        setupKebabListeners();
+        safeCreateIcons();
       }
 
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
