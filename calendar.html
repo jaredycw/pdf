@@ -535,6 +535,9 @@
       appearance: auto;
       min-height: var(--touch-min);
       backdrop-filter: blur(4px);
+      min-width: 0;
+      width: auto;
+      max-width: 100%;
     }
     .add-form input::placeholder {
       color: var(--color-text-soft);
@@ -554,6 +557,8 @@
       background-repeat: no-repeat;
       background-position: right 1rem center;
       padding-right: 2.8rem;
+      min-width: 0;
+      max-width: 100%;
     }
     .add-form button {
       background: var(--color-accent-dark);
@@ -575,6 +580,7 @@
       min-width: var(--touch-min);
       box-shadow: 0 4px 16px rgba(30, 26, 22, 0.08);
       letter-spacing: 0.01em;
+      flex-shrink: 0;
     }
     .add-form button .lucide {
       width: var(--icon-size) !important;
@@ -1159,6 +1165,9 @@
       }
     }
 
+    /* ================================================
+       MOBILE RESPONSIVE — FIXED OVERFLOW
+    ================================================ */
     @media (max-width: 640px) {
       :root {
         --spacing-app: 1rem 1rem;
@@ -1168,6 +1177,7 @@
         --icon-size: 1.05rem;
         --touch-min: 44px;
       }
+
       .app-header {
         flex-direction: column;
         align-items: flex-start;
@@ -1177,6 +1187,7 @@
         font-size: var(--text-extra-small);
         padding: 0.15rem 0.7rem;
       }
+
       .tabs {
         gap: 0.3rem;
         padding: 0.2rem;
@@ -1196,29 +1207,37 @@
         width: var(--icon-size) !important;
         height: var(--icon-size) !important;
       }
+
+      /* === FIX: Form inputs full width on mobile === */
       .add-form {
         flex-direction: column;
         align-items: stretch;
         gap: 0.5rem;
         border-radius: var(--radius-form);
         padding: var(--spacing-form);
+        width: 100%;
       }
       .add-form input,
       .add-form select,
       .add-form button {
         flex: 1 1 auto;
-        width: 100%;
+        width: 100% !important;
         min-height: var(--touch-min);
+        max-width: 100% !important;
+        box-sizing: border-box;
       }
       .add-form select {
         flex: 1 1 auto;
         background-position: right 0.8rem center;
         padding-right: 2.4rem;
+        width: 100% !important;
       }
       .add-form button {
         justify-content: center;
         padding: 0.7rem;
+        width: 100% !important;
       }
+
       .event-item,
       .bucket-item {
         display: grid;
@@ -1228,6 +1247,7 @@
         align-items: center;
         border-radius: var(--radius-card);
         flex-wrap: nowrap;
+        width: 100%;
       }
       .event-item .event-info,
       .bucket-item .event-info {
@@ -1262,6 +1282,7 @@
         width: calc(var(--icon-size) * 0.95) !important;
         height: calc(var(--icon-size) * 0.95) !important;
       }
+
       .event-title {
         font-size: var(--text-medium-large) !important;
         gap: 0.15rem;
@@ -1281,6 +1302,7 @@
         min-height: 18px;
         align-self: flex-start;
       }
+
       .event-meta {
         display: flex;
         flex-direction: column;
@@ -1296,6 +1318,7 @@
         width: auto;
         display: inline-flex;
       }
+
       .bucket-item .event-title {
         flex-direction: column;
         align-items: flex-start;
@@ -1307,6 +1330,7 @@
       .bucket-item .event-title .lucide {
         margin-bottom: 0.05rem;
       }
+
       .subhead {
         font-size: var(--text-small);
         gap: 0.3rem;
@@ -1321,6 +1345,7 @@
         width: var(--icon-size-tiny) !important;
         height: var(--icon-size-tiny) !important;
       }
+
       .empty-state {
         font-size: var(--text-medium-small);
         padding: 1.2rem 0.5rem;
@@ -1329,6 +1354,7 @@
         width: 1.8rem !important;
         height: 1.8rem !important;
       }
+
       .reminder-popover {
         padding: 0.6rem 0 0.8rem 0;
       }
@@ -1349,6 +1375,7 @@
         min-height: 40px;
         min-width: 40px;
       }
+
       .note-sheet {
         padding: 0.6rem 0 0.8rem 0;
       }
