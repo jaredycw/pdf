@@ -114,7 +114,15 @@
       flex-shrink: 0;
     }
     .lucide.lucide-calendar,
-    .lucide.lucide-clock {
+    .lucide.lucide-clock,
+    .lucide.lucide-sun,
+    .lucide.lucide-cloud-sun,
+    .lucide.lucide-cloud,
+    .lucide.lucide-cloud-fog,
+    .lucide.lucide-cloud-drizzle,
+    .lucide.lucide-cloud-rain,
+    .lucide.lucide-cloud-lightning,
+    .lucide.lucide-cloud-snow {
       width: var(--icon-size-tiny) !important;
       height: var(--icon-size-tiny) !important;
     }
@@ -498,6 +506,51 @@
       height: 0.65rem !important;
       fill: #a67c5a;
       stroke: #a67c5a;
+    }
+
+    /* Small, glanceable weather chip — rendered on every event that
+       falls within the fetched forecast window. Icon + temp by
+       default; a condition word (Rain/Storm/Fog) or comfort word
+       (Hot/Cold, using HKO's own warning thresholds) is prepended
+       only when it's actually worth calling out — clear, comfortable
+       days stay icon + temp only. */
+    .weather-chip {
+      font-size: var(--text-extra-small);
+      background: rgba(122, 143, 166, 0.1);
+      padding: 0.04rem 0.5rem;
+      border-radius: var(--radius-badge);
+      color: var(--color-calendar);
+      display: flex;
+      align-items: center;
+      gap: 0.2rem;
+      font-weight: 500;
+      border: 1px solid rgba(122, 143, 166, 0.1);
+      white-space: nowrap;
+    }
+    .weather-chip .lucide {
+      width: 0.65rem !important;
+      height: 0.65rem !important;
+      stroke: var(--color-calendar);
+      opacity: 1;
+    }
+    /* Hot reuses the existing danger palette rather than introducing a
+       new accent — Hong Kong's "too hot" is the far more common case
+       than "too cold", so it gets the more noticeable treatment. */
+    .weather-chip.is-hot {
+      background: var(--color-danger-bg);
+      color: var(--color-danger-text);
+      border-color: rgba(217, 92, 74, 0.15);
+    }
+    .weather-chip.is-hot .lucide {
+      stroke: var(--color-danger-text);
+    }
+    .weather-chip.is-cold {
+      background: rgba(122, 143, 166, 0.18);
+      color: var(--color-calendar);
+      border-color: rgba(122, 143, 166, 0.25);
+    }
+    .weather-chip.is-cold .lucide {
+      stroke: var(--color-calendar);
     }
 
     /* ================================================
@@ -1788,6 +1841,18 @@
         fill: #c8a88a;
         stroke: #c8a88a;
       }
+      .weather-chip {
+        background: rgba(138, 168, 192, 0.12);
+        border-color: rgba(138, 168, 192, 0.12);
+        color: var(--color-calendar);
+      }
+      .weather-chip .lucide {
+        stroke: var(--color-calendar);
+      }
+      .weather-chip.is-cold {
+        background: rgba(138, 168, 192, 0.2);
+        border-color: rgba(138, 168, 192, 0.3);
+      }
       .kebab-menu .kebab-item.is-active {
         color: var(--color-note);
       }
@@ -2063,6 +2128,111 @@
         return '<span class="owner-badge ' + (classes[owner] || '') + '">' + (labels[owner] || '') + '</span>';
       }
 
+      // =============================================
+      // WEATHER (Hong Kong)
+      // =============================================
+      // Open-Meteo: free, no API key, no signup — fine for a static
+      // client-side page like this one. An OpenWeatherMap-style key
+      // would have to be embedded in the page source anyway, which
+      // isn't a safe place to keep even a free-tier key.
+      const WEATHER_LAT = 22.3193;
+      const WEATHER_LON = 114.1694;
+      // HKO's own thresholds: Very Hot Weather Warning uses daily max
+      // >= 33°C; the cold warning uses daily min <= 12°C. Using HK's
+      // actual criteria here rather than made-up numbers.
+      const HOT_THRESHOLD_C = 33;
+      const COLD_THRESHOLD_C = 12;
+      let weatherByDate = {}; // 'YYYY-MM-DD' -> { code, tempMax, tempMin }
+
+      // WMO weather codes, as returned by Open-Meteo's daily.weather_code
+      function weatherIconFor(code) {
+        if (code === 0 || code === 1) return 'sun';
+        if (code === 2) return 'cloud-sun';
+        if (code === 3) return 'cloud';
+        if (code === 45 || code === 48) return 'cloud-fog';
+        if (code >= 51 && code <= 57) return 'cloud-drizzle';
+        if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return 'cloud-rain';
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'cloud-snow';
+        if (code === 95 || code === 96 || code === 99) return 'cloud-lightning';
+        return 'cloud';
+      }
+
+      // Short label shown inline in the chip, but only for conditions
+      // worth calling out (rain/storm/fog/snow) — clear and cloudy days
+      // stay icon + temp only so the common case doesn't get noisy.
+      function weatherConditionLabel(code) {
+        if (code === 45 || code === 48) return 'Fog';
+        if (code >= 51 && code <= 57) return 'Drizzle';
+        if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return 'Rain';
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'Snow';
+        if (code === 95 || code === 96 || code === 99) return 'Storm';
+        return null;
+      }
+
+      // 'Hot'/'Cold' using HKO's real warning thresholds — null in the
+      // normal comfortable range, so the label only shows up when it's
+      // actually actionable.
+      function weatherComfortLabel(tempMax, tempMin) {
+        if (typeof tempMax === 'number' && tempMax >= HOT_THRESHOLD_C) return 'Hot';
+        if (typeof tempMin === 'number' && tempMin <= COLD_THRESHOLD_C) return 'Cold';
+        return null;
+      }
+
+      function weatherConditionWord(code) {
+        if (code === 0 || code === 1) return 'clear';
+        if (code === 2) return 'partly cloudy';
+        if (code === 3) return 'cloudy';
+        if (code === 45 || code === 48) return 'foggy';
+        if (code >= 51 && code <= 57) return 'drizzling';
+        if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return 'rainy';
+        if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snowy';
+        if (code === 95 || code === 96 || code === 99) return 'stormy';
+        return 'unclear';
+      }
+
+      function weatherHintFor(code, tempMax, tempMin) {
+        const condition = weatherConditionWord(code);
+        const comfort = weatherComfortLabel(tempMax, tempMin);
+        const highLow = (typeof tempMax === 'number' && typeof tempMin === 'number')
+          ? Math.round(tempMin) + '\u2013' + Math.round(tempMax) + '\u00b0C'
+          : '';
+        let hint = highLow ? highLow + ', ' + condition : condition;
+        if (comfort === 'Hot') hint += ' — quite hot, stay hydrated';
+        else if (comfort === 'Cold') hint += ' — cold, dress warm';
+        else if (code >= 61) hint += ' — bring an umbrella';
+        return hint;
+      }
+
+      function fetchWeather() {
+        const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + WEATHER_LAT +
+          '&longitude=' + WEATHER_LON +
+          '&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FHong_Kong&forecast_days=16';
+
+        fetch(url)
+          .then(function(res) {
+            if (!res.ok) throw new Error('weather request failed: ' + res.status);
+            return res.json();
+          })
+          .then(function(data) {
+            if (!data || !data.daily || !data.daily.time) return;
+            const days = data.daily.time;
+            const codes = data.daily.weather_code || [];
+            const highs = data.daily.temperature_2m_max || [];
+            const lows = data.daily.temperature_2m_min || [];
+            const map = {};
+            for (let i = 0; i < days.length; i++) {
+              map[days[i]] = { code: codes[i], tempMax: highs[i], tempMin: lows[i] };
+            }
+            weatherByDate = map;
+            renderEvents();
+          })
+          .catch(function(err) {
+            // No weather is a fine degraded state — never let a flaky
+            // network request break the rest of the app.
+            console.error('Weather fetch failed:', err);
+          });
+      }
+
       function sortEvents(eventsArray) {
         return eventsArray.slice().sort(function(a, b) {
           if (a.pinned && !b.pinned) return -1;
@@ -2300,6 +2470,20 @@
           html += '      <span><i data-lucide="calendar" class="lucide"></i> ' + ev.date + '</span>';
           if (ev.time) {
             html += '      <span><i data-lucide="clock" class="lucide"></i> ' + ev.time + '</span>';
+          }
+          if (weatherByDate[ev.date]) {
+            const w = weatherByDate[ev.date];
+            const wIcon = weatherIconFor(w.code);
+            const wHint = weatherHintFor(w.code, w.tempMax, w.tempMin);
+            const wTemp = (typeof w.tempMax === 'number') ? Math.round(w.tempMax) + '\u00b0C' : '';
+            const wComfort = weatherComfortLabel(w.tempMax, w.tempMin);
+            const wCondition = weatherConditionLabel(w.code);
+            // Rain/storm/fog/snow takes priority over hot/cold as the
+            // callout word — knowing it's about to storm matters more
+            // than knowing it'll also be warm.
+            const wLabel = wCondition || wComfort;
+            const wComfortClass = wComfort === 'Hot' ? ' is-hot' : (wComfort === 'Cold' ? ' is-cold' : '');
+            html += '      <span class="weather-chip' + wComfortClass + '" title="' + wHint + '" aria-label="' + wHint + '"><i data-lucide="' + wIcon + '" class="lucide"></i> ' + (wLabel ? wLabel + ' ' : '') + wTemp + '</span>';
           }
           if (ev.reminder) {
             html += '      <span class="reminder-badge"><i data-lucide="bell" class="lucide"></i> ' + ev.reminder +
@@ -2827,6 +3011,7 @@
         setupEventDelegation();
         setupKebabListeners();
         safeCreateIcons();
+        fetchWeather();
       }
 
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
