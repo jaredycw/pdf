@@ -165,7 +165,7 @@
             "October 2025", "November 2025", "December 2025",
             "January 2026", "February 2026", "March 2026",
             "April 2026", "May 2026", "June 2026",
-            "July 2026", "August 2026", "September 2026"
+            "July 2026", "August 2026", "September 2026", "October 2026"
         ];
 
         // Initialize everything
@@ -178,7 +178,7 @@
             const container = document.getElementById('monthButtons');
             container.innerHTML = '';
 
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 13; i++) {
                 const btn = document.createElement('button');
                 btn.className = `month-btn ${i === 0 ? 'active' : ''}`;
                 btn.textContent = monthNames[i];
@@ -264,7 +264,7 @@
 
             const companyName = document.getElementById('company-name').value.trim() || "invoice";
 
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 13; i++) {
                 const loopDate = new Date(2025, 9 + i, 17);
                 const formattedDate = loopDate.toLocaleDateString("en-US", { 
                     year: 'numeric', month: 'long', day: 'numeric' 
